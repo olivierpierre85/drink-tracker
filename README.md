@@ -8,6 +8,13 @@ kept on the phone. You can also back it up to a private GitHub repository of you
   to add it now. **+** on a logged drink adds the same drink again. Use "Other drink" for
   anything else, and tick "Save to my drinks" to keep it. Use ‹ › or tap the date to log
   on another day. You can undo from the toast, or remove a drink with ×.
+- **Blood alcohol**: once your weight is set (Settings), a card shows the estimated level in
+  g/L (‰) over time, with lines at 0,5 don't drive (Belgian limit), 0,8 drunk, 1,2 very
+  drunk and 1,6 dangerous (blackout risk). It also shows when you'll be below 0,5 and back
+  to 0. Logging a drink that will push you into a higher level triggers a warning, and the
+  dangerous level opens a safety screen. The model is Widmark (r = 0,68 men, 0,55 women),
+  with a 10 min absorption half-life and Michaelis-Menten elimination (~0,15 g/L/h around
+  0,5). **It is only an estimate. Never use it to decide whether you can drive.**
 - **Trends**: bar chart per day, week or month, with the weekly guideline, plus total,
   average per week, alcohol-free days and heaviest day.
 - **Settings**: manage saved drinks, set the weekly limit (default 10), set the hour a new

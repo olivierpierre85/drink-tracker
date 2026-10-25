@@ -198,6 +198,34 @@ h2 { font-size: 15px; font-weight: 600; color: var(--ink-2); margin: 24px 0 8px;
 .del:active { background: var(--surface-2); color: var(--critical-text); }
 .empty { padding: 18px; text-align: center; color: var(--ink-2); font-size: 14px; }
 
+.daybac { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 13px; font-weight: 600; border: none; background: none; padding: 0; text-align: left; }
+.daybac i { width: 10px; height: 10px; border-radius: 5px; flex: none; }
+.bac { padding: 14px 14px 12px; margin-top: 12px; scroll-margin-top: 12px; }
+.bac-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.bac-head .label { font-size: 14px; color: var(--ink-2); }
+.pill { padding: 3px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; white-space: nowrap; }
+.bac-value { font-size: 30px; font-weight: 600; line-height: 1.2; margin-top: 2px; }
+.bac-value small { font-size: 15px; font-weight: 500; color: var(--ink-2); }
+.bac-sub { font-size: 13px; color: var(--ink-2); min-height: 18px; }
+#bacChart { height: 150px; margin: 8px -4px 0; touch-action: pan-y; user-select: none; }
+#bacChart svg { display: block; width: 100%; height: 100%; }
+#bacChart .line { fill: none; stroke: var(--series-1); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+#bacChart .area { fill: var(--series-1); fill-opacity: .1; }
+#bacChart .base { stroke: var(--axis); }
+#bacChart .cross { stroke: var(--muted); }
+#bacChart .nowline { stroke: var(--ink-2); }
+#bacChart .dot { fill: var(--series-1); stroke: var(--surface); stroke-width: 2; }
+#bacChart .drink { fill: var(--ink-2); stroke: var(--surface); stroke-width: 2; }
+#bacChart .hit { fill: transparent; }
+#bacChart text { font-size: 11px; fill: var(--muted); font-variant-numeric: tabular-nums; }
+#bacChart text.lvl { fill: var(--ink-2); paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
+.bac-foot { font-size: 13px; color: var(--ink-2); margin-top: 6px; }
+.bac-foot small { display: block; font-size: 12px; margin-top: 2px; }
+.bac-setup { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; color: var(--ink-2); margin-top: 8px; }
+#dangerDlg h2 { color: var(--critical-text); }
+.advice { padding-left: 20px; margin: 8px 0; }
+.advice li { margin: 6px 0; }
+
 /* ---- Trends tab ---- */
 .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
 .seg { display: inline-flex; background: var(--surface-2); border-radius: 12px; padding: 3px; }
@@ -361,6 +389,7 @@ dialog h2 { margin: 0 0 14px; font-size: 19px; color: var(--ink); }
         <div class="label">This day</div>
         <div class="value" id="dayStd">0</div>
         <div class="sub" id="dayGrams"></div>
+        <button class="daybac" id="dayBac" hidden><i></i><span></span></button>
       </div>
       <div class="card tile">
         <div class="label" id="weekLabel">This week</div>
@@ -374,6 +403,17 @@ dialog h2 { margin: 0 0 14px; font-size: 19px; color: var(--ink); }
     <h2>Tap to add</h2>
     <div class="presets" id="presets"></div>
     <button class="other" id="otherBtn">+ Other drink</button>
+
+    <div class="card bac" id="bacCard" hidden>
+      <div class="bac-head"><span class="label">Blood alcohol · estimate</span><span class="pill" id="bacPill"></span></div>
+      <div id="bacBody">
+        <div class="bac-value" id="bacValue"></div>
+        <div class="bac-sub" id="bacSub"></div>
+        <div id="bacChart"></div>
+        <div class="bac-foot" id="bacFoot"></div>
+      </div>
+      <div class="bac-setup" id="bacSetup">Add your weight to estimate blood alcohol. <button class="btn" id="bacSetupBtn">Set up</button></div>
+    </div>
 
     <h2 id="loggedTitle">Logged</h2>
     <div class="card"><ul class="entries" id="entries"></ul></div>
@@ -431,6 +471,18 @@ dialog h2 { margin: 0 0 14px; font-size: 19px; color: var(--ink); }
       </div>
     </div>
 
+    <h2>Blood alcohol estimate</h2>
+    <div class="card">
+      <div class="setting">
+        <div><b>Weight</b><p>Needed for the estimate.</p></div>
+        <span class="unit"><input class="num" id="weight" inputmode="decimal" autocomplete="off" placeholder="75" aria-label="Weight in kg"> kg</span>
+      </div>
+      <div class="setting">
+        <div><b>Sex</b><p>Women reach a higher level from the same drinks.</p></div>
+        <select id="sex" aria-label="Sex"><option value="m">Male</option><option value="f">Female</option></select>
+      </div>
+    </div>
+
     <h2>Online backup</h2>
     <div class="card">
       <div class="setting">
@@ -464,6 +516,10 @@ dialog h2 { margin: 0 0 14px; font-size: 19px; color: var(--ink); }
     <h2>How it counts</h2>
     <p class="about">1 standard drink (standaardglas / verre standard) = 10 g of pure alcohol.<br>
       Grams = cl × % × 0,08 (alcohol weighs 0,8 g/ml), so 33 cl at 5% = 13,2 g = 1,3 standard drinks.</p>
+    <p class="about">Blood alcohol (g/L, the Belgian ‰) uses the Widmark formula: grams ÷ (weight × 0,68 for men or 0,55 for women).
+      Each drink peaks about 30–40 minutes after you drink it. The body removes about 0,15 g/L per hour, and less at low levels.
+      Levels: 0,5 don't drive (Belgian limit) · 0,8 drunk · 1,2 very drunk · 1,6 dangerous, with risk of blackout.<br>
+      <b>It is only an estimate.</b> Food, health, medication and tiredness change it a lot. Never use it to decide whether you can drive.</p>
   </section>
 </main>
 
@@ -489,6 +545,18 @@ dialog h2 { margin: 0 0 14px; font-size: 19px; color: var(--ink); }
   </div>
 </dialog>
 
+<dialog id="dangerDlg">
+  <h2>⚠ Dangerous level</h2>
+  <p id="dangerText"></p>
+  <p>At this level blackouts, vomiting and falls become likely, and alcohol poisoning is possible.</p>
+  <ul class="advice">
+    <li>Stop drinking alcohol and switch to water.</li>
+    <li>Don't stay alone, and don't drive.</li>
+    <li>If someone can't be woken, breathes slowly or vomits while drowsy: call <b>112</b> and lay them on their side.</li>
+  </ul>
+  <div class="actions"><button class="btn primary" id="dangerOk" type="button">OK</button></div>
+</dialog>
+
 <script>
 'use strict';
 
@@ -496,6 +564,7 @@ const KEY = 'drinktracker.v1';
 const SYNC_KEY = 'drinktracker.sync';
 const SYNC_FILE = 'drinks.json';
 const LOCALE = 'en-BE';
+const DAY_MS = 864e5;
 const DEFAULT_PRESETS = [
   [4, 20], [4, 40],
   [12, 12], [15, 12], [20, 12],
@@ -539,7 +608,7 @@ function defaults() {
     presets: DEFAULT_PRESETS.map(([cl, abv]) => ({ id: `d${cl}-${abv}`, cl, abv })),
     entries: [],
     deleted: [],
-    settings: { weeklyLimit: 10, dayStartHour: 5, startDay: null, prefsAt: 0, lastExport: null },
+    settings: { weeklyLimit: 10, dayStartHour: 5, weight: null, sex: 'm', startDay: null, prefsAt: 0, lastExport: null },
   };
 }
 
@@ -595,18 +664,34 @@ const touchPrefs = () => { state.settings.prefsAt = Date.now(); };
 
 // ---------- actions ----------
 function addDrink(cl, abv) {
+  const isNow = view.day === todayKey();
   let ts = Date.now();
-  if (view.day !== todayKey()) {
+  if (!isNow) {
     const d = dateOfKey(view.day);
     d.setHours(20, 0, 0, 0);
     ts = d.getTime();
   }
+  const before = isNow ? upcomingPeak() : null;
   const e = { id: uid(), ts, cl, abv };
   state.entries.push(e);
   save();
   render();
+  const undo = () => removeEntry(e.id, true);
+
+  // Warn when this drink is expected to push blood alcohol into a higher level.
+  const after = isNow ? upcomingPeak() : null;
+  const lvl = after ? levelOf(after.v) : -1;
+  if (lvl >= 0 && lvl > levelOf(before.v)) {
+    navigator.vibrate?.([150, 80, 150]);
+    toast(`⚠ ${BAC_LEVELS[lvl].label}: heading for ${fBac.format(after.v)} g/L around ${fmtTime(after.t)}`, undo, 8000);
+    if (lvl === BAC_LEVELS.length - 1) {
+      $('#dangerText').textContent = `Estimated ${fBac.format(after.v)} g/L around ${fmtTime(after.t)}.`;
+      $('#dangerDlg').showModal();
+    }
+    return;
+  }
   navigator.vibrate?.(15);
-  toast(`Added ${fN.format(cl)} cl · ${fN.format(abv)}% (${f1.format(stdOf(cl, abv))})`, () => removeEntry(e.id, true));
+  toast(`Added ${fN.format(cl)} cl · ${fN.format(abv)}% (${f1.format(stdOf(cl, abv))})`, undo);
 }
 
 function removeEntry(id, silent) {
@@ -640,6 +725,7 @@ function removePreset(id) {
 }
 
 const validDrink = (cl, abv) => cl > 0 && cl <= 300 && abv > 0 && abv <= 100;
+const validWeight = kg => kg >= 30 && kg <= 300;
 
 // ---------- data files (export, import, online backup) ----------
 // One drink per line, so the backup repo's history reads like a log.
@@ -650,6 +736,8 @@ function serialize(s) {
     settings: {
       weeklyLimit: s.settings.weeklyLimit,
       dayStartHour: s.settings.dayStartHour,
+      weight: s.settings.weight,
+      sex: s.settings.sex,
       startDay: s.settings.startDay,
       prefsAt: s.settings.prefsAt,
     },
@@ -679,6 +767,8 @@ function sanitizeData(d) {
     settings: {
       weeklyLimit: s.weeklyLimit > 0 && s.weeklyLimit < 1000 ? Number(s.weeklyLimit) : undefined,
       dayStartHour: Number.isInteger(s.dayStartHour) && s.dayStartHour >= 0 && s.dayStartHour <= 8 ? s.dayStartHour : undefined,
+      weight: validWeight(s.weight) ? Number(s.weight) : undefined,
+      sex: s.sex === 'm' || s.sex === 'f' ? s.sex : undefined,
       startDay: /^\d{4}-\d{2}-\d{2}$/.test(s.startDay) ? s.startDay : null,
       prefsAt: Number(s.prefsAt) || 0,
     },
@@ -701,6 +791,8 @@ function mergeData(local, other) {
       ...local.settings,
       weeklyLimit: prefs.settings.weeklyLimit ?? local.settings.weeklyLimit,
       dayStartHour: prefs.settings.dayStartHour ?? local.settings.dayStartHour,
+      weight: prefs.settings.weight ?? local.settings.weight,
+      sex: prefs.settings.sex ?? local.settings.sex,
       prefsAt: prefs.settings.prefsAt,
       startDay: startDays[0] || local.settings.startDay,
     },
@@ -797,7 +889,7 @@ async function runSync() {
 
 // ---------- toast ----------
 let toastTimer;
-function toast(msg, undo) {
+function toast(msg, undo, ms) {
   const t = $('#toast');
   t.querySelector('.msg').textContent = msg;
   const b = t.querySelector('button');
@@ -805,9 +897,205 @@ function toast(msg, undo) {
   b.onclick = () => { hideToast(); undo(); };
   t.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(hideToast, undo ? 4500 : 3500);
+  toastTimer = setTimeout(hideToast, ms || (undo ? 4500 : 3500));
 }
 function hideToast() { $('#toast').classList.remove('show'); }
+
+// ---------- blood alcohol ----------
+// Widmark estimate in g/L (= ‰): grams ÷ (r × kg). Each drink is absorbed with a 10 min
+// half-life (peak ~30-40 min after drinking). The liver removes ~0,15 g/L per hour around
+// 0,5 g/L and less at low levels (Michaelis-Menten: VMAX × v / (KM + v)). This puts one beer
+// at ~0,18 g/L for a 75 kg man, close to lab measurements.
+const WIDMARK_R = { m: 0.68, f: 0.55 };
+const ABSORB_HALF_LIFE_H = 10 / 60;
+const ELIM_VMAX = 0.18;
+const ELIM_KM = 0.1;
+const BAC_ZERO = 0.02; // below this, count as 0
+const BAC_STEP = 2 * 60e3;
+const BAC_LEVELS = [
+  { at: 0.5, label: "Don't drive", bg: '#fab219', fg: '#0b0b0b' },
+  { at: 0.8, label: 'Drunk', bg: '#ec835a', fg: '#0b0b0b' },
+  { at: 1.2, label: 'Very drunk', bg: '#d03b3b', fg: '#ffffff' },
+  { at: 1.6, label: 'Dangerous', bg: '#d03b3b', fg: '#ffffff' },
+];
+const levelOf = v => BAC_LEVELS.findLastIndex(l => v >= l.at);
+const levelText = lvl => (lvl === BAC_LEVELS.length - 1 ? '⚠ ' : '') + BAC_LEVELS[lvl].label;
+const fBac = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtTime = t => new Date(t).toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' });
+const hasBody = () => validWeight(state.settings.weight);
+
+// Level every BAC_STEP from the first drink until all alcohol is gone. drinks: sorted by ts.
+function simulateBac(drinks) {
+  const litres = WIDMARK_R[state.settings.sex] * state.settings.weight;
+  const ka = Math.LN2 / (ABSORB_HALF_LIFE_H * 3600e3);
+  const stepH = BAC_STEP / 3600e3;
+  const pts = [];
+  let v = 0, prevAbs = 0;
+  for (let t = drinks[0].ts; pts.length < 3000; t += BAC_STEP) {
+    let abs = 0, pending = false;
+    for (const d of drinks) {
+      if (t < d.ts) { pending = true; continue; }
+      const f = 1 - Math.exp(-ka * (t - d.ts));
+      abs += gramsOf(d.cl, d.abv) * f;
+      if (f < 0.999) pending = true;
+    }
+    v = Math.max(0, v + (abs - prevAbs) / litres - ELIM_VMAX * v / (ELIM_KM + v) * stepH);
+    if (!pending && v < BAC_ZERO) v = 0;
+    prevAbs = abs;
+    pts.push({ t, v });
+    if (!pending && v === 0) break;
+  }
+  return pts;
+}
+
+const valueAt = (pts, t) => {
+  const i = Math.round((t - pts[0].t) / BAC_STEP);
+  return i >= 0 && i < pts.length ? pts[i].v : 0;
+};
+const maxPoint = pts => pts.reduce((a, p) => (p.v > a.v ? p : a), { t: pts[0]?.t, v: 0 });
+
+// Highest level still to come from drinks of the last 24 h (used for warnings).
+function upcomingPeak() {
+  const now = Date.now();
+  if (!hasBody()) return { t: now, v: 0 };
+  const pool = state.entries.filter(e => e.ts > now - DAY_MS && e.ts <= now + 60e3).sort((a, b) => a.ts - b.ts);
+  if (!pool.length) return { t: now, v: 0 };
+  return maxPoint(simulateBac(pool).filter(p => p.t >= now - BAC_STEP));
+}
+
+// The curve for one logical day: from its first drink (or last night's leftover) back to 0.
+function bacWindow(dayK) {
+  const start = dateOfKey(dayK);
+  start.setHours(state.settings.dayStartHour, 0, 0, 0);
+  const t0 = start.getTime();
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+  const pool = state.entries.filter(e => e.ts >= t0 - DAY_MS && e.ts < end.getTime()).sort((a, b) => a.ts - b.ts);
+  if (!pool.length) return null;
+  const pts = simulateBac(pool);
+  let i = pts.findIndex(p => p.t >= t0);
+  if (i < 0) return null;
+  while (i > 0 && pts[i - 1].v > 0) i--;
+  if (pts[i].v === 0) {
+    const first = pool.find(e => e.ts >= t0);
+    if (!first) return null;
+    i = pts.findIndex(p => p.t >= first.ts);
+  }
+  return pts.slice(Math.max(0, i - 8));
+}
+
+let bac = null;     // what the card currently shows
+let bacSel = null;  // time picked on the chart
+
+function renderBac(resetSel) {
+  if (resetSel) bacSel = null;
+  const card = $('#bacCard'), tileBac = $('#dayBac');
+  const isToday = view.day === todayKey();
+  const hasDrinks = state.entries.some(e => dayKey(e.ts) === view.day);
+  tileBac.hidden = true;
+  bac = null;
+  if (!hasBody()) {
+    card.hidden = !hasDrinks;
+    $('#bacBody').hidden = true;
+    $('#bacPill').hidden = true;
+    $('#bacSetup').hidden = false;
+    return;
+  }
+  const win = bacWindow(view.day);
+  const now = Date.now();
+  const nowV = win && isToday ? valueAt(win, now) : 0;
+  if (!win || (!hasDrinks && !nowV)) { card.hidden = true; return; }
+  card.hidden = false;
+  $('#bacBody').hidden = false;
+  $('#bacPill').hidden = false;
+  $('#bacSetup').hidden = true;
+  bac = { win, isToday, now, nowV, peak: maxPoint(win), next: maxPoint(win.filter(p => p.t >= now)) };
+
+  if (isToday && (nowV > 0 || bac.next.v > 0)) {
+    const lvl = levelOf(Math.max(nowV, bac.next.v));
+    tileBac.hidden = false;
+    tileBac.querySelector('i').style.background = lvl >= 0 ? BAC_LEVELS[lvl].bg : 'var(--axis)';
+    tileBac.querySelector('span').textContent = bac.next.v > nowV + 0.05
+      ? `${fBac.format(nowV)} → ${fBac.format(bac.next.v)} g/L`
+      : `${fBac.format(nowV)} g/L now`;
+  }
+  drawBac();
+}
+
+function drawBac() {
+  const { win, isToday, now, nowV, peak, next } = bac;
+  const sel = bacSel != null ? { t: bacSel, v: valueAt(win, bacSel) } : null;
+  const shown = sel || (isToday ? { t: now, v: nowV } : peak);
+
+  const lvl = levelOf(shown.v);
+  const pill = $('#bacPill');
+  pill.textContent = lvl >= 0 ? levelText(lvl) : shown.v > 0 ? 'Below 0,5' : 'Back to 0';
+  pill.style.background = lvl >= 0 ? BAC_LEVELS[lvl].bg : 'var(--surface-2)';
+  pill.style.color = lvl >= 0 ? BAC_LEVELS[lvl].fg : 'var(--ink-2)';
+  $('#bacValue').innerHTML = `${fBac.format(shown.v)} <small>g/L</small>`;
+  $('#bacSub').textContent = sel ? `at ${fmtTime(sel.t)}`
+    : !isToday ? `peak, around ${fmtTime(peak.t)}`
+    : next.v > nowV + 0.005 ? `now · rising to ${fBac.format(next.v)} around ${fmtTime(next.t)}`
+    : `now · peak ${fBac.format(peak.v)} at ${fmtTime(peak.t)}`;
+
+  const lastAbove = (pts, x) => { for (let i = pts.length - 1; i >= 0; i--) if (pts[i].v >= x) return pts[i].t + BAC_STEP; return null; };
+  const zeroAt = lastAbove(win, BAC_ZERO);
+  const belowLimit = lastAbove(win, BAC_LEVELS[0].at);
+  let foot = '';
+  if (isToday && belowLimit && belowLimit > now) foot = `Below 0,5 around ${fmtTime(belowLimit)} · `;
+  if (zeroAt) foot += `${isToday && zeroAt <= now ? 'Back to 0 at' : 'Back to 0 around'} ${fmtTime(zeroAt)}`;
+  $('#bacFoot').innerHTML = `${foot}<small>Estimate only. Never use it to decide whether you can drive.</small>`;
+
+  // chart
+  const el = $('#bacChart');
+  const W = Math.max(240, el.clientWidth || 340), H = el.clientHeight || 150;
+  const m = { t: 8, r: 6, b: 22, l: 30 };
+  const pw = W - m.l - m.r, ph = H - m.t - m.b;
+  const t0 = win[0].t, t1 = Math.max(win[win.length - 1].t, t0 + 3600e3);
+  const top = Math.max(0.65, peak.v * 1.12);
+  const x = t => m.l + (t - t0) / (t1 - t0) * pw;
+  const y = v => m.t + ph - Math.min(v, top) / top * ph;
+  const crisp = v => Math.round(v) + 0.5;
+  bac.geom = { m, pw, t0, t1 };
+
+  let svg = `<line class="base" x1="${m.l}" x2="${W - m.r}" y1="${crisp(y(0))}" y2="${crisp(y(0))}"/>
+    <text x="${m.l - 6}" y="${y(0)}" dy="0.32em" text-anchor="end">0</text>`;
+  for (const L of BAC_LEVELS) {
+    if (L.at > top) break;
+    svg += `<line x1="${m.l}" x2="${W - m.r}" y1="${crisp(y(L.at))}" y2="${crisp(y(L.at))}" stroke="${L.bg}"/>
+      <text x="${m.l - 6}" y="${y(L.at)}" dy="0.32em" text-anchor="end">${fN.format(L.at)}</text>
+      <text class="lvl" x="${W - m.r - 2}" y="${y(L.at) - 4}" text-anchor="end">${L.label}</text>`;
+  }
+  const spanH = (t1 - t0) / 3600e3;
+  const every = spanH <= 5 ? 1 : spanH <= 10 ? 2 : spanH <= 20 ? 3 : 6;
+  const h = new Date(t0);
+  h.setMinutes(0, 0, 0);
+  for (h.setHours(h.getHours() + 1); h.getTime() <= t1; h.setTime(h.getTime() + 3600e3)) {
+    if (h.getHours() % every === 0) svg += `<text x="${x(h.getTime())}" y="${H - 6}" text-anchor="middle">${fmtTime(h.getTime())}</text>`;
+  }
+  const line = win.map((p, i) => `${i ? 'L' : 'M'}${x(p.t).toFixed(1)},${y(p.v).toFixed(1)}`).join('');
+  svg += `<path class="area" d="${line}L${x(win[win.length - 1].t).toFixed(1)},${y(0)}L${x(t0)},${y(0)}Z"/><path class="line" d="${line}"/>`;
+  for (const e of state.entries) {
+    if (e.ts >= t0 && e.ts <= t1) svg += `<circle class="drink" cx="${x(e.ts)}" cy="${y(0)}" r="4"/>`;
+  }
+  if (isToday && now >= t0 && now <= t1) {
+    svg += `<line class="nowline" x1="${crisp(x(now))}" x2="${crisp(x(now))}" y1="${m.t}" y2="${y(0)}"/>
+      <text x="${x(now) + 4}" y="${m.t + 9}">now</text>`;
+  }
+  if (sel) svg += `<line class="cross" x1="${crisp(x(sel.t))}" x2="${crisp(x(sel.t))}" y1="${m.t}" y2="${y(0)}"/>`;
+  if (shown.t >= t0 && shown.t <= t1) svg += `<circle class="dot" cx="${x(shown.t)}" cy="${y(shown.v)}" r="5"/>`;
+  svg += `<rect class="hit" x="${m.l}" y="0" width="${pw}" height="${H}"/>`;
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Estimated blood alcohol over time">${svg}</svg>`;
+}
+
+function pickBac(ev) {
+  if (!bac?.geom) return;
+  const { m, pw, t0, t1 } = bac.geom;
+  const r = ev.currentTarget.getBoundingClientRect();
+  const f = Math.min(1, Math.max(0, (ev.clientX - r.left - m.l) / pw));
+  bacSel = t0 + Math.round(f * (t1 - t0) / BAC_STEP) * BAC_STEP;
+  drawBac();
+}
 
 // ---------- render: log ----------
 const X_ICON = '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
@@ -874,6 +1162,8 @@ function renderLog() {
       <button class="again" data-again="${cleanId(e.id)}" aria-label="Add another ${fN.format(e.cl)} cl at ${fN.format(e.abv)}%">${PLUS_ICON}</button>
       <button class="del" data-id="${cleanId(e.id)}" aria-label="Remove">${X_ICON}</button>
     </li>`).join('') || '<li class="empty">Nothing logged for this day.</li>';
+
+  renderBac(true);
 }
 
 // ---------- render: trends ----------
@@ -1017,6 +1307,8 @@ function renderSettings() {
     </div>`).join('') || '<div class="empty">No saved drinks.</div>';
   if (document.activeElement !== $('#limit')) $('#limit').value = fN.format(state.settings.weeklyLimit);
   $('#dayStart').value = String(state.settings.dayStartHour);
+  if (document.activeElement !== $('#weight')) $('#weight').value = hasBody() ? fN.format(state.settings.weight) : '';
+  $('#sex').value = state.settings.sex;
   const le = state.settings.lastExport;
   $('#backupInfo').textContent = `${state.entries.length} drinks stored on this phone. ` +
     (le ? `Last export: ${new Date(le).toLocaleDateString(LOCALE, { day: 'numeric', month: 'short', year: 'numeric' })}.` : 'Never exported.');
@@ -1157,6 +1449,17 @@ $('#chart').addEventListener('pointerdown', pickBar);
 $('#chart').addEventListener('pointermove', ev => { if (ev.pointerType === 'mouse') pickBar(ev); });
 new ResizeObserver(() => { if (view.tab === 'trends') renderTrends(); }).observe($('#chart'));
 
+// ---------- wiring: blood alcohol ----------
+$('#bacChart').addEventListener('pointerdown', pickBac);
+$('#bacChart').addEventListener('pointermove', ev => { if (ev.pointerType === 'mouse' || ev.buttons) pickBac(ev); });
+$('#bacChart').addEventListener('pointerleave', ev => { if (ev.pointerType === 'mouse' && bac) { bacSel = null; drawBac(); } });
+new ResizeObserver(() => { if (view.tab === 'log' && bac) drawBac(); }).observe($('#bacChart'));
+$('#dayBac').onclick = () => $('#bacCard').scrollIntoView({ behavior: 'smooth' });
+$('#bacSetupBtn').onclick = () => { showTab('settings'); $('#weight').focus(); };
+$('#dangerOk').onclick = () => $('#dangerDlg').close();
+// keep "now" current while the app is open
+setInterval(() => { if (view.tab === 'log' && !document.hidden && view.day === todayKey()) renderBac(false); }, 60e3);
+
 // ---------- wiring: settings ----------
 $('#dayStart').innerHTML = Array.from({ length: 9 }, (_, h) => `<option value="${h}">${pad(h)}:00</option>`).join('');
 $('#dayStart').onchange = ev => {
@@ -1165,6 +1468,17 @@ $('#dayStart').onchange = ev => {
   view.day = todayKey();
   save();
   renderSettings();
+};
+$('#weight').onchange = ev => {
+  const v = parseNum(ev.target.value);
+  if (validWeight(v)) { state.settings.weight = v; touchPrefs(); save(); }
+  else if (ev.target.value.trim()) toast('Enter a weight between 30 and 300 kg');
+  ev.target.value = hasBody() ? fN.format(state.settings.weight) : '';
+};
+$('#sex').onchange = ev => {
+  state.settings.sex = ev.target.value === 'f' ? 'f' : 'm';
+  touchPrefs();
+  save();
 };
 $('#limit').onchange = ev => {
   const v = parseNum(ev.target.value);
