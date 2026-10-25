@@ -141,7 +141,7 @@ h2 { font-size: 15px; font-weight: 600; color: var(--ink-2); margin: 24px 0 8px;
 .meter i { display: block; height: 100%; background: var(--series-1); border-radius: 3px; transition: width .2s; }
 .meter.over i { background: var(--critical); }
 
-h2 .note { font-weight: 400; }
+#presets { margin-top: 20px; }
 /* Drink tables: rows are glass sizes, columns are strengths; cells show % and (standard drinks). */
 .pgrid { display: grid; gap: 5px; align-items: center; }
 .pgrid.beer { grid-template-columns: 40px repeat(7, minmax(0, 1fr)); }
@@ -394,7 +394,6 @@ dialog h2 { margin: 0 0 14px; font-size: 19px; color: var(--ink); }
       </div>
     </div>
 
-    <h2>Tap to add <span class="note">· (standard drinks)</span></h2>
     <div id="presets"></div>
     <button class="other" id="otherBtn">+ Other drink</button>
 
