@@ -141,21 +141,26 @@ h2 { font-size: 15px; font-weight: 600; color: var(--ink-2); margin: 24px 0 8px;
 .meter i { display: block; height: 100%; background: var(--series-1); border-radius: 3px; transition: width .2s; }
 .meter.over i { background: var(--critical); }
 
-.presets { display: grid; gap: 8px; }
-.pgroup { display: flex; align-items: center; gap: 8px; }
-.pvol { flex: none; width: 50px; font-weight: 700; }
-.pbtns { flex: 1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+h2 .note { font-weight: 400; }
+/* Drink tables: rows are glass sizes, columns are strengths, cells show standard drinks. */
+.pgrid { display: grid; gap: 5px; align-items: center; }
+.pgrid.beer { grid-template-columns: 40px repeat(7, minmax(0, 1fr)); }
+.pgrid.more { grid-template-columns: 40px minmax(0, 1fr) 10px 48px repeat(2, minmax(0, 1fr)); margin-top: 14px; }
+.pgrid .ph { font-size: 12px; font-weight: 600; color: var(--ink-2); text-align: center; }
+.pgrid .sec { font-size: 13px; font-weight: 700; color: var(--ink); text-align: left; }
+.pgrid .pl { font-size: 13px; font-weight: 700; white-space: nowrap; }
 .preset {
-  min-height: 52px;
-  padding: 4px 2px;
+  min-height: 46px;
+  padding: 0;
   border: 1px solid var(--border);
   background: var(--surface);
-  border-radius: 12px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
   transition: transform .08s, background-color .15s;
 }
-.preset:active { transform: scale(.94); background: var(--accent-wash); }
-.preset b { display: block; font-size: 16px; line-height: 1.25; }
-.preset small { display: block; font-size: 11px; color: var(--accent-text); }
+.preset:active { transform: scale(.92); background: var(--accent-wash); }
 .other {
   width: 100%;
   margin-top: 10px;
@@ -264,16 +269,6 @@ th { color: var(--ink-2); font-weight: 600; border-top: 0; }
 td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 
 /* ---- Settings tab ---- */
-.rows > div {
-  display: flex; align-items: center; gap: 12px;
-  min-height: 52px;
-  padding: 4px 4px 4px 14px;
-  border-top: 1px solid var(--grid);
-}
-.rows > div:first-child { border-top: 0; }
-.rows .grow { flex: 1; }
-.rows .std { color: var(--ink-2); font-size: 14px; }
-.addrow { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--grid); flex-wrap: wrap; }
 .setting { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-top: 1px solid var(--grid); }
 .setting:first-child { border-top: 0; }
 .setting p { margin: 2px 0 0; font-size: 13px; color: var(--ink-2); overflow-wrap: anywhere; }
@@ -368,8 +363,6 @@ dialog h2 { margin: 0 0 14px; font-size: 19px; color: var(--ink); }
 .chip[aria-pressed="true"] { background: var(--accent-strong); color: #fff; border-color: transparent; }
 .preview { font-size: 15px; color: var(--ink-2); margin: 0 0 12px; min-height: 21px; }
 .preview b { color: var(--ink); }
-.check { display: flex; align-items: center; gap: 10px; min-height: 44px; }
-.check input { width: 20px; height: 20px; accent-color: var(--accent-strong); }
 .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 12px; }
 </style>
 </head>
@@ -400,8 +393,8 @@ dialog h2 { margin: 0 0 14px; font-size: 19px; color: var(--ink); }
       </div>
     </div>
 
-    <h2>Tap to add</h2>
-    <div class="presets" id="presets"></div>
+    <h2>Tap to add <span class="note">· numbers are standard drinks</span></h2>
+    <div id="presets"></div>
     <button class="other" id="otherBtn">+ Other drink</button>
 
     <div class="card bac" id="bacCard" hidden>
@@ -449,16 +442,6 @@ dialog h2 { margin: 0 0 14px; font-size: 19px; color: var(--ink); }
   <section id="tab-settings" hidden>
     <h1>Settings</h1>
 
-    <h2>My drinks</h2>
-    <div class="card">
-      <div class="rows" id="presetRows"></div>
-      <form class="addrow" id="addPreset">
-        <span class="unit"><input class="num" id="newCl" inputmode="decimal" autocomplete="off" placeholder="33" aria-label="Volume in cl"> cl</span>
-        <span class="unit"><input class="num" id="newAbv" inputmode="decimal" autocomplete="off" placeholder="5" aria-label="Alcohol percentage"> %</span>
-        <button class="btn primary" type="submit">Add</button>
-      </form>
-    </div>
-
     <h2>Guideline</h2>
     <div class="card">
       <div class="setting">
@@ -483,7 +466,7 @@ dialog h2 { margin: 0 0 14px; font-size: 19px; color: var(--ink); }
       </div>
     </div>
 
-    <h2>Online backup</h2>
+    <h2>Backup to GitHub</h2>
     <div class="card">
       <div class="setting">
         <div><b id="syncTitle">Not connected</b><p id="syncDetail"></p></div>
@@ -495,10 +478,10 @@ dialog h2 { margin: 0 0 14px; font-size: 19px; color: var(--ink); }
         <label>Access token
           <input class="text" id="syncToken" type="password" placeholder="github_pat_…" autocomplete="off" autocapitalize="off" spellcheck="false">
         </label>
-        <button class="btn primary" type="submit" id="syncConnect">Connect</button>
+        <button class="btn primary" type="submit" id="syncConnect">Connect and back up</button>
       </form>
       <div class="btnrow" id="syncActions" hidden>
-        <button class="btn" id="syncNow">Sync now</button>
+        <button class="btn primary" id="syncNow">Back up now</button>
         <button class="btn" id="syncOff">Disconnect</button>
       </div>
     </div>
@@ -538,7 +521,6 @@ dialog h2 { margin: 0 0 14px; font-size: 19px; color: var(--ink); }
   <label class="field" for="oAbv">Strength <span class="unit"><input class="num" id="oAbv" inputmode="decimal" autocomplete="off"> %</span></label>
   <div class="chips" data-for="oAbv"></div>
   <p class="preview" id="oPreview"></p>
-  <label class="check"><input type="checkbox" id="oSave"> Save to my drinks</label>
   <div class="actions">
     <button class="btn" id="oCancel" type="button">Cancel</button>
     <button class="btn primary" id="oAdd" type="button">Add</button>
@@ -565,14 +547,12 @@ const SYNC_KEY = 'drinktracker.sync';
 const SYNC_FILE = 'drinks.json';
 const LOCALE = 'en-BE';
 const DAY_MS = 864e5;
-const DEFAULT_PRESETS = [
-  [4, 20], [4, 40],
-  [12, 12], [15, 12], [20, 12],
-  [25, 4], [25, 5], [25, 6], [25, 8], [25, 10],
-  [33, 4], [33, 5], [33, 6], [33, 8], [33, 10],
-];
-const VOLUME_CHIPS = [4, 12, 15, 20, 25, 33, 50, 75];
-const ABV_CHIPS = [4, 5, 6, 8, 10, 12, 20, 40];
+// Drink buttons: [label, glass sizes in cl, strengths in %]
+const BEER = ['Beer', [25, 33, 50], [4, 5, 6, 7, 8, 9, 10]];
+const WINE = ['Wine', [12, 15, 20], [12]];
+const SPIRITS = ['Spirits', [2, 4, 6], [20, 40]];
+const VOLUME_CHIPS = [2, 4, 6, 12, 15, 20, 25, 33, 50, 75];
+const ABV_CHIPS = [4, 5, 6, 8, 10, 12, 15, 20, 40];
 
 // 1 Belgian standard drink = 10 g of pure alcohol; ethanol weighs ~0.8 g/ml.
 // grams = cl × 10 ml × abv/100 × 0.8 = cl × abv × 0.08
@@ -601,11 +581,10 @@ const fmtRange = (a, b, opts) => new Intl.DateTimeFormat(LOCALE, opts).formatRan
 const fmtWhen = ts => new Date(ts).toLocaleString(LOCALE, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 
 // ---------- state ----------
-// entries: every drink. deleted: ids of removed drinks, so a removal also syncs to other devices.
-// settings.prefsAt: when presets/limit/day-start last changed (newest wins when syncing).
+// entries: every drink. deleted: ids of removed drinks, so a removal also reaches other backups.
+// settings.prefsAt: when the settings last changed (newest wins when merging a backup).
 function defaults() {
   return {
-    presets: DEFAULT_PRESETS.map(([cl, abv]) => ({ id: `d${cl}-${abv}`, cl, abv })),
     entries: [],
     deleted: [],
     settings: { weeklyLimit: 10, dayStartHour: 5, weight: null, sex: 'm', startDay: null, prefsAt: 0, lastExport: null },
@@ -618,7 +597,6 @@ function load() {
     const s = JSON.parse(localStorage.getItem(KEY));
     if (s && Array.isArray(s.entries)) {
       return {
-        presets: Array.isArray(s.presets) ? s.presets : d.presets,
         entries: s.entries,
         deleted: Array.isArray(s.deleted) ? s.deleted : [],
         settings: { ...d.settings, ...s.settings },
@@ -633,9 +611,10 @@ function persist() {
   catch (e) { toast('Could not save — storage unavailable'); }
 }
 
+// A user change: store it, and note that the GitHub backup is now behind.
 function save() {
   persist();
-  scheduleSync();
+  if (sync.token && !sync.dirty) { sync.dirty = true; saveSync(); }
 }
 
 let state = load();
@@ -659,7 +638,6 @@ function trackingStart() {
   return s;
 }
 
-const sortPresets = () => state.presets.sort((a, b) => a.cl - b.cl || a.abv - b.abv);
 const touchPrefs = () => { state.settings.prefsAt = Date.now(); };
 
 // ---------- actions ----------
@@ -705,25 +683,6 @@ function removeEntry(id, silent) {
   if (!silent) toast('Drink removed', () => { state.entries.push({ ...e, id: uid() }); save(); render(); });
 }
 
-function addPreset(cl, abv) {
-  if (state.presets.some(p => p.cl === cl && p.abv === abv)) return false;
-  state.presets.push({ id: uid(), cl, abv });
-  sortPresets();
-  touchPrefs();
-  save();
-  return true;
-}
-
-function removePreset(id) {
-  const i = state.presets.findIndex(p => p.id === id);
-  if (i < 0) return;
-  const [p] = state.presets.splice(i, 1);
-  touchPrefs();
-  save();
-  render();
-  toast(`Removed ${fN.format(p.cl)} cl · ${fN.format(p.abv)}%`, () => { state.presets.push(p); sortPresets(); touchPrefs(); save(); render(); });
-}
-
 const validDrink = (cl, abv) => cl > 0 && cl <= 300 && abv > 0 && abv <= 100;
 const validWeight = kg => kg >= 30 && kg <= 300;
 
@@ -732,7 +691,7 @@ const validWeight = kg => kg >= 30 && kg <= 300;
 function serialize(s) {
   const head = {
     app: 'drink-tracker',
-    version: 2,
+    version: 3,
     settings: {
       weeklyLimit: s.settings.weeklyLimit,
       dayStartHour: s.settings.dayStartHour,
@@ -741,7 +700,6 @@ function serialize(s) {
       startDay: s.settings.startDay,
       prefsAt: s.settings.prefsAt,
     },
-    presets: s.presets.map(p => ({ id: p.id, cl: p.cl, abv: p.abv })),
     deleted: [...s.deleted].sort(),
   };
   const lines = s.entries
@@ -758,11 +716,6 @@ function sanitizeData(d) {
     entries: d.entries
       .map(e => ({ id: cleanId(e.id) || cleanId(`x${e.ts}-${e.cl}-${e.abv}`), ts: Number(e.ts), cl: Number(e.cl), abv: Number(e.abv) }))
       .filter(e => Number.isFinite(e.ts) && validDrink(e.cl, e.abv)),
-    presets: Array.isArray(d.presets)
-      ? d.presets
-        .map(p => ({ id: cleanId(p.id) || cleanId(`x${p.cl}-${p.abv}`), cl: Number(p.cl), abv: Number(p.abv) }))
-        .filter(p => validDrink(p.cl, p.abv))
-      : null,
     deleted: Array.isArray(d.deleted) ? d.deleted.map(cleanId).filter(Boolean) : [],
     settings: {
       weeklyLimit: s.weeklyLimit > 0 && s.weeklyLimit < 1000 ? Number(s.weeklyLimit) : undefined,
@@ -776,15 +729,14 @@ function sanitizeData(d) {
 }
 
 // Drinks: union of both sides minus anything deleted on either side.
-// Presets and settings: whichever side changed them last.
+// Settings: whichever side changed them last.
 function mergeData(local, other) {
   const deleted = new Set([...local.deleted, ...other.deleted]);
   const byId = new Map();
   for (const e of [...other.entries, ...local.entries]) if (!deleted.has(e.id)) byId.set(e.id, e);
-  const prefs = other.presets && other.settings.prefsAt >= local.settings.prefsAt ? other : local;
+  const prefs = other.settings.prefsAt >= local.settings.prefsAt ? other : local;
   const startDays = [local.settings.startDay, other.settings.startDay].filter(Boolean).sort();
   return {
-    presets: prefs.presets,
     entries: [...byId.values()],
     deleted: [...deleted],
     settings: {
@@ -799,19 +751,12 @@ function mergeData(local, other) {
   };
 }
 
-// ---------- online backup: drinks.json in a private GitHub repo ----------
+// ---------- manual backup: drinks.json in a private GitHub repo, one commit per "Back up now" ----------
 let sync = (() => { try { return JSON.parse(localStorage.getItem(SYNC_KEY)) || {}; } catch (e) { return {}; } })();
-let syncTimer = null, syncing = false, syncQueued = false, syncWarned = false;
+let syncing = false;
 
 function saveSync() {
   try { localStorage.setItem(SYNC_KEY, JSON.stringify(sync)); } catch (e) { /* ignore */ }
-}
-
-function scheduleSync(delay = 3000) {
-  if (!sync.token) return;
-  if (syncing) { syncQueued = true; return; }
-  clearTimeout(syncTimer);
-  syncTimer = setTimeout(runSync, delay);
 }
 
 const b64encode = s => { let bin = ''; for (const b of new TextEncoder().encode(s)) bin += String.fromCharCode(b); return btoa(bin); };
@@ -825,7 +770,7 @@ async function ghFetch(path, opts = {}) {
       headers: { Authorization: `Bearer ${sync.token}`, Accept: 'application/vnd.github+json', ...opts.headers },
     });
   } catch (e) {
-    throw Object.assign(new Error('Offline, will retry'), { offline: true });
+    throw new Error('No connection. Try again when online.');
   }
 }
 
@@ -837,12 +782,13 @@ function ghError(res) {
     : `GitHub error ${res.status}`);
 }
 
-async function runSync() {
-  clearTimeout(syncTimer);
-  if (!sync.token) return;
-  if (syncing) { syncQueued = true; return; }
+// Reads the backup, merges it in (drinks from another phone come back too), and writes it
+// back as a single commit when something changed.
+async function backupNow() {
+  if (!sync.token || syncing) return;
   syncing = true;
   renderSyncStatus();
+  let wrote = false;
   try {
     for (let attempt = 1; ; attempt++) {
       const res = await ghFetch(`/contents/${SYNC_FILE}`);
@@ -858,7 +804,6 @@ async function runSync() {
       }
       if (remoteText != null) {
         state = mergeData(state, sanitizeData(JSON.parse(remoteText)));
-        sortPresets();
         persist();
         render();
       }
@@ -867,23 +812,24 @@ async function runSync() {
       const put = await ghFetch(`/contents/${SYNC_FILE}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: `Update drinks (${state.entries.length})`, content: b64encode(text), ...(sha && { sha }) }),
+        body: JSON.stringify({ message: `Backup: ${state.entries.length} drinks`, content: b64encode(text), ...(sha && { sha }) }),
       });
-      if (put.ok) break;
-      // 409/422: the file changed since we read it (another device) - read, merge and try again.
+      if (put.ok) { wrote = true; break; }
+      // 409/422: the file changed since we read it (another phone) - read, merge and try again.
       if ((put.status === 409 || put.status === 422) && attempt < 3) continue;
       throw ghError(put);
     }
     sync.lastSync = Date.now();
+    sync.dirty = false;
     sync.error = null;
+    toast(wrote ? `Backed up ${state.entries.length} drinks` : 'Backup already up to date');
   } catch (err) {
     sync.error = err.message;
-    if (!err.offline && !syncWarned) { syncWarned = true; toast(`Online backup: ${err.message}`); }
+    toast(`Backup failed: ${err.message}`);
   } finally {
     syncing = false;
     saveSync();
     renderSyncStatus();
-    if (syncQueued) { syncQueued = false; scheduleSync(500); }
   }
 }
 
@@ -1137,21 +1083,6 @@ function renderLog() {
   $('#weekFree').textContent = `${free} alcohol-free day${free === 1 ? '' : 's'}`;
   $('#weekWarn').hidden = !over;
 
-  const groups = new Map();
-  for (const p of state.presets) {
-    if (!groups.has(p.cl)) groups.set(p.cl, []);
-    groups.get(p.cl).push(p);
-  }
-  $('#presets').innerHTML = [...groups].map(([cl, ps]) => `
-    <div class="pgroup">
-      <div class="pvol">${fN.format(cl)} cl</div>
-      <div class="pbtns">${ps.map(p => `
-        <button class="preset" data-cl="${+p.cl}" data-abv="${+p.abv}" aria-label="Add ${fN.format(p.cl)} cl at ${fN.format(p.abv)}%">
-          <b>${fN.format(p.abv)}%</b><small>${f1.format(stdOf(p.cl, p.abv))}</small>
-        </button>`).join('')}
-      </div>
-    </div>`).join('') || '<p class="hint">No saved drinks — use “Other drink” and tick “Save to my drinks”.</p>';
-
   const list = state.entries.filter(e => dayKey(e.ts) === view.day).sort((a, b) => a.ts - b.ts);
   $('#loggedTitle').textContent = list.length ? `Logged · ${list.length} drink${list.length === 1 ? '' : 's'}` : 'Logged';
   $('#entries').innerHTML = list.map(e => `
@@ -1299,12 +1230,6 @@ function renderTrends() {
 
 // ---------- render: settings ----------
 function renderSettings() {
-  $('#presetRows').innerHTML = state.presets.map(p => `
-    <div>
-      <span class="grow">${fN.format(p.cl)} cl · ${fN.format(p.abv)}%</span>
-      <span class="std">${f1.format(stdOf(p.cl, p.abv))} std</span>
-      <button class="del" data-preset="${cleanId(p.id)}" aria-label="Remove ${fN.format(p.cl)} cl ${fN.format(p.abv)}%">${X_ICON}</button>
-    </div>`).join('') || '<div class="empty">No saved drinks.</div>';
   if (document.activeElement !== $('#limit')) $('#limit').value = fN.format(state.settings.weeklyLimit);
   $('#dayStart').value = String(state.settings.dayStartHour);
   if (document.activeElement !== $('#weight')) $('#weight').value = hasBody() ? fN.format(state.settings.weight) : '';
@@ -1322,20 +1247,25 @@ function renderSyncStatus() {
   $('#syncActions').hidden = !on;
   const title = $('#syncTitle'), detail = $('#syncDetail');
   title.className = '';
+  $('#syncNow').disabled = syncing;
+  const last = sync.lastSync ? `Last backup ${fmtWhen(sync.lastSync)}` : 'No backup yet';
   if (!on) {
     title.textContent = 'Not connected';
-    detail.textContent = 'Saves your drinks to a private GitHub repository and keeps devices in sync.';
+    detail.textContent = 'Drinks are saved on this phone. Connect a private GitHub repository to back them up when you choose.';
   } else if (syncing) {
-    title.textContent = 'Syncing…';
+    title.textContent = 'Backing up…';
     detail.textContent = sync.repo;
   } else if (sync.error) {
     title.textContent = `⚠ ${sync.error}`;
     title.className = 'bad';
-    detail.textContent = sync.repo + (sync.lastSync ? ` · last backup ${fmtWhen(sync.lastSync)}` : '');
+    detail.textContent = `${sync.repo} · ${last}`;
+  } else if (sync.dirty || !sync.lastSync) {
+    title.textContent = 'Changes not backed up yet';
+    detail.textContent = `${sync.repo} · ${last}`;
   } else {
-    title.textContent = '✓ Backed up online';
+    title.textContent = '✓ Backup up to date';
     title.className = 'ok';
-    detail.textContent = sync.repo + (sync.lastSync ? ` · ${fmtWhen(sync.lastSync)}` : '');
+    detail.textContent = `${sync.repo} · ${last}`;
   }
 }
 
@@ -1352,6 +1282,22 @@ function showTab(tab) {
   render();
   scrollTo(0, 0);
 }
+
+// ---------- drink tables (fixed) ----------
+// Each kind is a table: a header row of strengths, then one row per glass size.
+// Beer fills the width; wine and spirits sit side by side underneath.
+function drinkTable([name, sizes, strengths]) {
+  const button = (cl, abv) =>
+    `<button class="preset" data-cl="${cl}" data-abv="${abv}" aria-label="Add ${fN.format(cl)} cl at ${fN.format(abv)}%">${f1.format(stdOf(cl, abv))}</button>`;
+  return [
+    [`<span class="ph sec">${name}</span>`, ...strengths.map(a => `<span class="ph">${a}%</span>`)],
+    ...sizes.map(cl => [`<span class="pl">${cl} cl</span>`, ...strengths.map(a => button(cl, a))]),
+  ];
+}
+const wine = drinkTable(WINE), spirits = drinkTable(SPIRITS);
+$('#presets').innerHTML =
+  `<div class="pgrid beer">${drinkTable(BEER).flat().join('')}</div>` +
+  `<div class="pgrid more">${wine.map((row, i) => [...row, '<span></span>', ...spirits[i]]).flat().join('')}</div>`;
 
 // ---------- wiring: log ----------
 $('.tabs').addEventListener('click', ev => {
@@ -1415,7 +1361,6 @@ $('#oAbv').oninput = updateOther;
 $('#otherBtn').onclick = () => {
   $('#oCl').value = '';
   $('#oAbv').value = '';
-  $('#oSave').checked = false;
   updateOther();
   dlg.showModal();
   document.activeElement?.blur();
@@ -1425,7 +1370,6 @@ dlg.addEventListener('click', ev => { if (ev.target === dlg) dlg.close(); });
 $('#oAdd').onclick = () => {
   const cl = parseNum($('#oCl').value), abv = parseNum($('#oAbv').value);
   if (!validDrink(cl, abv)) return;
-  if ($('#oSave').checked) addPreset(cl, abv);
   dlg.close();
   addDrink(cl, abv);
 };
@@ -1485,20 +1429,6 @@ $('#limit').onchange = ev => {
   if (v > 0 && v < 1000) { state.settings.weeklyLimit = v; touchPrefs(); save(); }
   ev.target.value = fN.format(state.settings.weeklyLimit);
 };
-$('#addPreset').onsubmit = ev => {
-  ev.preventDefault();
-  const cl = parseNum($('#newCl').value), abv = parseNum($('#newAbv').value);
-  if (!validDrink(cl, abv)) { toast('Enter a volume in cl and a percentage'); return; }
-  if (!addPreset(cl, abv)) { toast('That drink is already saved'); return; }
-  $('#newCl').value = '';
-  $('#newAbv').value = '';
-  document.activeElement?.blur();
-  renderSettings();
-};
-$('#presetRows').addEventListener('click', ev => {
-  const b = ev.target.closest('[data-preset]');
-  if (b) removePreset(b.dataset.preset);
-});
 
 $('#syncForm').onsubmit = async ev => {
   ev.preventDefault();
@@ -1521,11 +1451,10 @@ $('#syncForm').onsubmit = async ev => {
     btn.disabled = false;
   }
   $('#syncToken').value = '';
-  syncWarned = false;
   saveSync();
-  runSync();
+  backupNow();
 };
-$('#syncNow').onclick = () => { syncWarned = false; runSync(); };
+$('#syncNow').onclick = () => backupNow();
 $('#syncOff').onclick = () => {
   sync = { repo: sync.repo };
   saveSync();
@@ -1555,7 +1484,6 @@ $('#importFile').onchange = async ev => {
   try {
     const before = state.entries.length;
     state = mergeData(state, sanitizeData(JSON.parse(await file.text())));
-    sortPresets();
     save();
     render();
     const added = state.entries.length - before;
@@ -1569,19 +1497,14 @@ $('#importFile').onchange = async ev => {
 // When the app comes back after the day rolled over, jump from "old today" to the new today.
 let lastToday = todayKey();
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') {
-    if (syncTimer) runSync(); // push pending changes before the app is suspended
-    return;
-  }
+  if (document.visibilityState !== 'visible') return;
   const t = todayKey();
   if (t !== lastToday) {
     if (view.day === lastToday) view.day = t;
     lastToday = t;
   }
   render();
-  runSync(); // pick up drinks logged on another device
 });
-addEventListener('online', () => runSync());
 
 navigator.storage?.persist?.().catch(() => {});
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
@@ -1590,7 +1513,6 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
 
 if (sync.repo) $('#syncRepo').value = sync.repo;
 showTab('log');
-runSync();
 </script>
 </body>
 </html>

@@ -2,12 +2,13 @@
 
 Personal alcohol tracker for Android, as an installable web app (PWA). It counts in
 Belgian standard drinks (1 standaardglas / verre standard = 10 g pure alcohol). Data is
-kept on the phone. You can also back it up to a private GitHub repository of your own.
+kept on the phone. When you choose, you can back it up to a private GitHub repository.
 
-- **Log**: saved drinks appear in rows by glass size (4, 12, 15, 20, 25, 33 cl). Tap one
-  to add it now. **+** on a logged drink adds the same drink again. Use "Other drink" for
-  anything else, and tick "Save to my drinks" to keep it. Use ‹ › or tap the date to log
-  on another day. You can undo from the toast, or remove a drink with ×.
+- **Log**: three tables of drink buttons. Each button shows that drink's standard drinks.
+  Beer: 25, 33 and 50 cl at 4–10%. Wine: 12, 15 and 20 cl at 12%. Spirits: 2, 4 and 6 cl at
+  20% or 40%. Tap one to add it now. **+** on a logged drink adds the same drink again.
+  Use "Other drink" for anything else. Use ‹ › or tap the date to log on another day.
+  You can undo from the toast, or remove a drink with ×.
 - **Blood alcohol**: once your weight is set (Settings), a card shows the estimated level in
   g/L (‰) over time, with lines at 0,5 don't drive (Belgian limit), 0,8 drunk, 1,2 very
   drunk and 1,6 dangerous (blackout risk). It also shows when you'll be below 0,5 and back
@@ -17,9 +18,9 @@ kept on the phone. You can also back it up to a private GitHub repository of you
   0,5). **It is only an estimate. Never use it to decide whether you can drive.**
 - **Trends**: bar chart per day, week or month, with the weekly guideline, plus total,
   average per week, alcohol-free days and heaviest day.
-- **Settings**: manage saved drinks, set the weekly limit (default 10), set the hour a new
-  day starts (default 05:00, so a 01:30 drink counts for the night before), and
-  export or import a JSON backup.
+- **Settings**: set the weekly limit (default 10), the hour a new day starts (default
+  05:00, so a 01:30 drink counts for the night before), and your weight and sex. Back up
+  to GitHub, or export and import a JSON file.
 
 ## Files
 
@@ -37,12 +38,14 @@ The app must be served over HTTPS, for example with GitHub Pages:
 The app updates in the background. A new version shows up the next time it is opened.
 If you change the list of files, bump `CACHE` in `sw.js`.
 
-## Online backup
+## Backup to GitHub
 
-The app saves all drinks to `drinks.json` in a **private** GitHub repository. It syncs a
-few seconds after each change and every time the app is opened. Each sync is a commit,
-so the repo history doubles as a log. With the same repo, a second phone stays in sync.
-Removed drinks are removed everywhere.
+Drinks are only saved on the phone until you tap **Settings → Back up now**. That makes
+one commit of `drinks.json` in a **private** GitHub repository. Nothing is sent
+automatically. Settings shows when changes haven't been backed up yet. A backup first
+merges in what's already in the repository. Restoring a new phone is simply connecting
+it and backing up, and a drink removed on one phone is removed on the other at the next
+backup.
 
 One-time setup:
 
@@ -53,8 +56,8 @@ One-time setup:
    - Permissions → Repository permissions → **Contents: Read and write**.
    - Expiration: pick the longest you're comfortable with. When it expires, the app
      shows "Token rejected". Paste a new token to fix it.
-3. In the app: Settings → Online backup. Enter `your-name/drink-data`, paste the token,
-   and tap **Connect**.
+3. In the app: Settings → Backup to GitHub. Enter `your-name/drink-data`, paste the
+   token, and tap **Connect and back up**.
 
 The token stays on the phone and can only touch that one repository. The app refuses to
 connect to a public repository.
@@ -62,5 +65,5 @@ connect to a public repository.
 ## Backup file
 
 **Settings → Export** downloads a JSON file. **Import** merges a file back in and skips
-duplicates. Without online backup, data lives only in the app on the phone: uninstalling
-it or clearing Chrome's site data deletes it.
+duplicates. Anything not backed up lives only in the app on the phone: uninstalling it or
+clearing Chrome's site data deletes it.
