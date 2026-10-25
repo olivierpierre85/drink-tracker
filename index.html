@@ -1,0 +1,1282 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<title>Drinks</title>
+<meta name="theme-color" content="#f9f9f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --surface-2: #f0efec;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --muted: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --border: rgba(11,11,11,.10);
+  --series-1: #2a78d6;
+  --accent-strong: #256abf;
+  --accent-text: #256abf;
+  --accent-wash: rgba(42,120,214,.12);
+  --meter-track: #cde2fb;
+  --critical: #d03b3b;
+  --critical-text: #b42f2f;
+  --good-text: #006300;
+  --toast-bg: #2c2c2a;
+  --toast-ink: #f0efec;
+  --toast-action: #86b6ef;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --surface-2: #2c2c2a;
+    --ink: #f0efec;
+    --ink-2: #c3c2b7;
+    --muted: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --border: rgba(255,255,255,.10);
+    --series-1: #3987e5;
+    --accent-strong: #256abf;
+    --accent-text: #6da7ec;
+    --accent-wash: rgba(57,135,229,.18);
+    --meter-track: #104281;
+    --critical: #d03b3b;
+    --critical-text: #e66767;
+    --good-text: #0ca30c;
+    --toast-bg: #f0efec;
+    --toast-ink: #0b0b0b;
+    --toast-action: #256abf;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --surface-2: #2c2c2a;
+  --ink: #f0efec;
+  --ink-2: #c3c2b7;
+  --muted: #898781;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --border: rgba(255,255,255,.10);
+  --series-1: #3987e5;
+  --accent-strong: #256abf;
+  --accent-text: #6da7ec;
+  --accent-wash: rgba(57,135,229,.18);
+  --meter-track: #104281;
+  --critical: #d03b3b;
+  --critical-text: #e66767;
+  --good-text: #0ca30c;
+  --toast-bg: #f0efec;
+  --toast-ink: #0b0b0b;
+  --toast-action: #256abf;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+main {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: calc(12px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom));
+}
+button { font: inherit; color: inherit; touch-action: manipulation; cursor: pointer; }
+button:disabled { opacity: .3; cursor: default; }
+[hidden] { display: none !important; }
+h1 { font-size: 22px; margin: 8px 0 16px; }
+h2 { font-size: 15px; font-weight: 600; color: var(--ink-2); margin: 24px 0 8px; }
+.hint { color: var(--ink-2); font-size: 14px; margin: 6px 0; }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+/* ---- Log tab ---- */
+.daynav {
+  display: grid;
+  grid-template-columns: 48px 1fr 48px;
+  align-items: center;
+  margin-bottom: 12px;
+  position: relative;
+}
+.navbtn {
+  width: 48px; height: 48px;
+  border: none; background: none; border-radius: 12px;
+  color: var(--ink-2);
+  display: grid; place-items: center;
+}
+.navbtn svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.navbtn:active:not(:disabled) { background: var(--surface-2); }
+.daylabel { border: none; background: none; padding: 4px; text-align: center; border-radius: 12px; }
+.daylabel b { display: block; font-size: 22px; }
+.daylabel span { font-size: 14px; color: var(--ink-2); }
+#pickDate { position: absolute; left: 50%; bottom: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.tile { padding: 14px; }
+.tile .label { font-size: 14px; color: var(--ink-2); }
+.tile .value { font-size: 36px; font-weight: 600; line-height: 1.15; margin-top: 2px; }
+.tile .value small { font-size: 17px; font-weight: 500; color: var(--ink-2); }
+.tile .sub { font-size: 13px; color: var(--ink-2); margin-top: 4px; }
+.tile .warn { font-size: 13px; color: var(--critical-text); font-weight: 600; margin-top: 2px; }
+.meter { height: 6px; background: var(--meter-track); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--series-1); border-radius: 3px; transition: width .2s; }
+.meter.over i { background: var(--critical); }
+
+.presets { display: grid; gap: 8px; }
+.pgroup { display: flex; align-items: center; gap: 8px; }
+.pvol { flex: none; width: 50px; font-weight: 700; }
+.pbtns { flex: 1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.preset {
+  min-height: 52px;
+  padding: 4px 2px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 12px;
+  transition: transform .08s, background-color .15s;
+}
+.preset:active { transform: scale(.94); background: var(--accent-wash); }
+.preset b { display: block; font-size: 16px; line-height: 1.25; }
+.preset small { display: block; font-size: 11px; color: var(--accent-text); }
+.other {
+  width: 100%;
+  margin-top: 10px;
+  min-height: 52px;
+  border: 1.5px dashed var(--axis);
+  background: none;
+  border-radius: 16px;
+  color: var(--accent-text);
+  font-weight: 600;
+}
+.other:active { background: var(--accent-wash); }
+
+.entries { list-style: none; margin: 0; padding: 0; }
+.entries li {
+  display: flex; align-items: center; gap: 8px;
+  min-height: 52px;
+  padding: 2px 4px 2px 14px;
+  border-top: 1px solid var(--grid);
+}
+.entries li:first-child { border-top: 0; }
+.entries time { width: 46px; flex: none; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.entries .what { flex: 1; }
+.entries .std { color: var(--ink-2); font-variant-numeric: tabular-nums; margin-right: 4px; }
+.again {
+  width: 40px; height: 40px; flex: none;
+  border: none; border-radius: 20px;
+  background: var(--accent-wash); color: var(--accent-text);
+  display: grid; place-items: center;
+  transition: transform .08s;
+}
+.again svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
+.again:active { transform: scale(.9); }
+.del {
+  width: 44px; height: 44px; flex: none;
+  border: none; background: none; border-radius: 10px;
+  color: var(--muted);
+  display: grid; place-items: center;
+}
+.del svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+.del:active { background: var(--surface-2); color: var(--critical-text); }
+.empty { padding: 18px; text-align: center; color: var(--ink-2); font-size: 14px; }
+
+/* ---- Trends tab ---- */
+.toolbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+.seg { display: inline-flex; background: var(--surface-2); border-radius: 12px; padding: 3px; }
+.seg button {
+  border: none; background: none;
+  padding: 8px 14px; border-radius: 9px;
+  font-size: 14px; color: var(--ink-2);
+}
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.15); }
+.pager { display: flex; align-items: center; }
+.pager .navbtn { width: 40px; height: 40px; }
+.chartcard { padding: 14px 10px 8px; }
+.readout { padding: 0 6px; min-height: 52px; }
+.readout .p { font-size: 14px; color: var(--ink-2); }
+.readout .v { font-size: 24px; font-weight: 600; }
+.readout .v small { font-size: 14px; font-weight: 500; color: var(--ink-2); }
+.readout .warn { font-size: 14px; color: var(--critical-text); font-weight: 600; margin-left: 6px; }
+#chart { position: relative; height: 220px; touch-action: pan-y; user-select: none; }
+#chart svg { display: block; width: 100%; height: 100%; }
+#chart .bar { fill: var(--series-1); }
+#chart .grid { stroke: var(--grid); }
+#chart .base { stroke: var(--axis); }
+#chart .limit { stroke: var(--ink-2); }
+#chart .sel { fill: var(--surface-2); }
+#chart .hit { fill: transparent; }
+#chart text { font-size: 11px; fill: var(--muted); font-variant-numeric: tabular-nums; }
+#chart text.limitlabel { fill: var(--ink-2); paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
+.range { text-align: center; font-size: 13px; color: var(--ink-2); padding: 4px 0 2px; }
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.stats .tile .value { font-size: 24px; }
+details { margin-top: 12px; }
+summary { cursor: pointer; color: var(--accent-text); font-weight: 600; padding: 10px 0; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { padding: 8px 12px; text-align: left; border-top: 1px solid var(--grid); }
+th { color: var(--ink-2); font-weight: 600; border-top: 0; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---- Settings tab ---- */
+.rows > div {
+  display: flex; align-items: center; gap: 12px;
+  min-height: 52px;
+  padding: 4px 4px 4px 14px;
+  border-top: 1px solid var(--grid);
+}
+.rows > div:first-child { border-top: 0; }
+.rows .grow { flex: 1; }
+.rows .std { color: var(--ink-2); font-size: 14px; }
+.addrow { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--grid); flex-wrap: wrap; }
+.setting { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-top: 1px solid var(--grid); }
+.setting:first-child { border-top: 0; }
+.setting p { margin: 2px 0 0; font-size: 13px; color: var(--ink-2); overflow-wrap: anywhere; }
+#syncTitle.ok { color: var(--good-text); }
+#syncTitle.bad { color: var(--critical-text); }
+.unit { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); }
+input.num, input.text, select {
+  font: inherit;
+  color: var(--ink);
+  background: var(--page);
+  border: 1px solid var(--axis);
+  border-radius: 10px;
+  padding: 9px 10px;
+}
+input.num { width: 76px; text-align: right; }
+input.text { width: 100%; }
+input.num:focus, input.text:focus, select:focus { outline: 2px solid var(--series-1); outline-offset: 1px; }
+.syncform { display: grid; gap: 10px; padding: 12px 14px; border-top: 1px solid var(--grid); }
+.syncform label { display: grid; gap: 4px; font-size: 14px; font-weight: 600; color: var(--ink-2); }
+.syncform .btn { justify-self: start; }
+.btn {
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  font-weight: 600;
+}
+.btn.primary { background: var(--accent-strong); color: #fff; border-color: transparent; }
+.btn:active { filter: brightness(.92); }
+.btnrow { display: flex; gap: 10px; padding: 12px 14px; flex-wrap: wrap; border-top: 1px solid var(--grid); }
+.btnrow:first-child { border-top: 0; }
+.about { font-size: 13px; color: var(--ink-2); padding: 0 4px; }
+
+/* ---- Bottom tabs ---- */
+.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  display: flex; justify-content: center;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 5;
+}
+.tabs button {
+  flex: 1; max-width: 170px;
+  border: none; background: none;
+  padding: 8px 0 10px;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  font-size: 12px; color: var(--ink-2);
+}
+.tabs .pill { display: grid; place-items: center; width: 56px; height: 30px; border-radius: 15px; transition: background-color .15s; }
+.tabs svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tabs button[aria-selected="true"] { color: var(--ink); font-weight: 600; }
+.tabs button[aria-selected="true"] .pill { background: var(--accent-wash); color: var(--accent-text); }
+
+/* ---- Toast ---- */
+.toast {
+  position: fixed; left: 16px; right: 16px;
+  bottom: calc(80px + env(safe-area-inset-bottom));
+  max-width: 488px; margin: 0 auto;
+  display: flex; align-items: center; gap: 8px;
+  min-height: 48px;
+  padding: 4px 4px 4px 16px;
+  border-radius: 12px;
+  background: var(--toast-bg); color: var(--toast-ink);
+  box-shadow: 0 4px 16px rgba(0,0,0,.2);
+  opacity: 0; transform: translateY(16px); pointer-events: none;
+  transition: opacity .18s, transform .18s;
+  z-index: 10;
+}
+.toast.show { opacity: 1; transform: none; pointer-events: auto; }
+.toast .msg { flex: 1; font-size: 14px; }
+.toast button { border: none; background: none; color: var(--toast-action); font-weight: 700; padding: 10px 14px; border-radius: 8px; }
+
+/* ---- Other-drink dialog ---- */
+dialog {
+  width: min(440px, calc(100vw - 24px));
+  border: none; border-radius: 20px;
+  padding: 20px;
+  background: var(--surface); color: var(--ink);
+}
+dialog::backdrop { background: rgba(0,0,0,.45); }
+dialog h2 { margin: 0 0 14px; font-size: 19px; color: var(--ink); }
+.field { display: flex; align-items: center; justify-content: space-between; font-weight: 600; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 16px; }
+.chip {
+  min-height: 38px; padding: 0 12px;
+  border: 1px solid var(--border); border-radius: 999px;
+  background: var(--surface-2);
+  font-size: 14px;
+}
+.chip[aria-pressed="true"] { background: var(--accent-strong); color: #fff; border-color: transparent; }
+.preview { font-size: 15px; color: var(--ink-2); margin: 0 0 12px; min-height: 21px; }
+.preview b { color: var(--ink); }
+.check { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+.check input { width: 20px; height: 20px; accent-color: var(--accent-strong); }
+.actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <!-- ============ LOG ============ -->
+  <section id="tab-log">
+    <div class="daynav">
+      <button class="navbtn" id="prevDay" aria-label="Previous day"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <button class="daylabel" id="dayLabel" aria-label="Pick a date"><b id="dayRel">Today</b><span id="dayFull"></span></button>
+      <button class="navbtn" id="nextDay" aria-label="Next day"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+      <input type="date" id="pickDate" tabindex="-1" aria-hidden="true">
+    </div>
+
+    <div class="tiles">
+      <div class="card tile">
+        <div class="label">This day</div>
+        <div class="value" id="dayStd">0</div>
+        <div class="sub" id="dayGrams"></div>
+      </div>
+      <div class="card tile">
+        <div class="label" id="weekLabel">This week</div>
+        <div class="value"><span id="weekStd">0</span><small id="weekLimit"></small></div>
+        <div class="meter" id="weekMeter"><i></i></div>
+        <div class="sub" id="weekFree"></div>
+        <div class="warn" id="weekWarn" hidden>▲ Above guideline</div>
+      </div>
+    </div>
+
+    <h2>Tap to add</h2>
+    <div class="presets" id="presets"></div>
+    <button class="other" id="otherBtn">+ Other drink</button>
+
+    <h2 id="loggedTitle">Logged</h2>
+    <div class="card"><ul class="entries" id="entries"></ul></div>
+  </section>
+
+  <!-- ============ TRENDS ============ -->
+  <section id="tab-trends" hidden>
+    <h1>Trends</h1>
+    <div class="toolbar">
+      <div class="seg" role="group" aria-label="Group by">
+        <button data-mode="day">Days</button>
+        <button data-mode="week">Weeks</button>
+        <button data-mode="month">Months</button>
+      </div>
+      <div class="pager">
+        <button class="navbtn" id="older" aria-label="Older"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <button class="navbtn" id="newer" aria-label="Newer"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+      </div>
+    </div>
+    <div class="card chartcard">
+      <div class="readout" id="readout" aria-live="polite"></div>
+      <div id="chart"></div>
+      <div class="range" id="range"></div>
+    </div>
+    <div class="stats" id="stats"></div>
+    <details>
+      <summary>Show as table</summary>
+      <div class="card"><table id="table"></table></div>
+    </details>
+  </section>
+
+  <!-- ============ SETTINGS ============ -->
+  <section id="tab-settings" hidden>
+    <h1>Settings</h1>
+
+    <h2>My drinks</h2>
+    <div class="card">
+      <div class="rows" id="presetRows"></div>
+      <form class="addrow" id="addPreset">
+        <span class="unit"><input class="num" id="newCl" inputmode="decimal" autocomplete="off" placeholder="33" aria-label="Volume in cl"> cl</span>
+        <span class="unit"><input class="num" id="newAbv" inputmode="decimal" autocomplete="off" placeholder="5" aria-label="Alcohol percentage"> %</span>
+        <button class="btn primary" type="submit">Add</button>
+      </form>
+    </div>
+
+    <h2>Guideline</h2>
+    <div class="card">
+      <div class="setting">
+        <div><b>Weekly limit</b><p>Belgian advice: max 10 standard drinks a week, with several alcohol-free days.</p></div>
+        <input class="num" id="limit" inputmode="decimal" autocomplete="off" aria-label="Weekly limit">
+      </div>
+      <div class="setting">
+        <div><b>New day starts at</b><p>Drinks after midnight count towards the evening before.</p></div>
+        <select id="dayStart" aria-label="New day starts at"></select>
+      </div>
+    </div>
+
+    <h2>Online backup</h2>
+    <div class="card">
+      <div class="setting">
+        <div><b id="syncTitle">Not connected</b><p id="syncDetail"></p></div>
+      </div>
+      <form class="syncform" id="syncForm">
+        <label>Private GitHub repository
+          <input class="text" id="syncRepo" placeholder="your-name/drink-data" autocomplete="off" autocapitalize="off" spellcheck="false">
+        </label>
+        <label>Access token
+          <input class="text" id="syncToken" type="password" placeholder="github_pat_…" autocomplete="off" autocapitalize="off" spellcheck="false">
+        </label>
+        <button class="btn primary" type="submit" id="syncConnect">Connect</button>
+      </form>
+      <div class="btnrow" id="syncActions" hidden>
+        <button class="btn" id="syncNow">Sync now</button>
+        <button class="btn" id="syncOff">Disconnect</button>
+      </div>
+    </div>
+
+    <h2>Backup file</h2>
+    <div class="card">
+      <div class="btnrow">
+        <button class="btn" id="exportBtn">Export</button>
+        <button class="btn" id="importBtn">Import</button>
+        <input type="file" id="importFile" accept="application/json,.json" hidden>
+      </div>
+      <p class="hint" id="backupInfo" style="padding: 0 14px 12px; margin: 0"></p>
+    </div>
+
+    <h2>How it counts</h2>
+    <p class="about">1 standard drink (standaardglas / verre standard) = 10 g of pure alcohol.<br>
+      Grams = cl × % × 0,08 (alcohol weighs 0,8 g/ml), so 33 cl at 5% = 13,2 g = 1,3 standard drinks.</p>
+  </section>
+</main>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" data-tab="log" aria-selected="true"><span class="pill"><svg viewBox="0 0 24 24"><path d="M6 3h12l-1.6 17.1a1 1 0 0 1-1 .9H8.6a1 1 0 0 1-1-.9z"/><path d="M6.6 9h10.8"/></svg></span>Log</button>
+  <button role="tab" data-tab="trends" aria-selected="false"><span class="pill"><svg viewBox="0 0 24 24"><path d="M3 20h18"/><path d="M6 20v-8"/><path d="M12 20V5"/><path d="M18 20v-5"/></svg></span>Trends</button>
+  <button role="tab" data-tab="settings" aria-selected="false"><span class="pill"><svg viewBox="0 0 24 24"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg></span>Settings</button>
+</nav>
+
+<div class="toast" id="toast" role="status"><span class="msg"></span><button type="button">Undo</button></div>
+
+<dialog id="otherDlg">
+  <h2>Other drink</h2>
+  <label class="field" for="oCl">Volume <span class="unit"><input class="num" id="oCl" inputmode="decimal" autocomplete="off"> cl</span></label>
+  <div class="chips" data-for="oCl"></div>
+  <label class="field" for="oAbv">Strength <span class="unit"><input class="num" id="oAbv" inputmode="decimal" autocomplete="off"> %</span></label>
+  <div class="chips" data-for="oAbv"></div>
+  <p class="preview" id="oPreview"></p>
+  <label class="check"><input type="checkbox" id="oSave"> Save to my drinks</label>
+  <div class="actions">
+    <button class="btn" id="oCancel" type="button">Cancel</button>
+    <button class="btn primary" id="oAdd" type="button">Add</button>
+  </div>
+</dialog>
+
+<script>
+'use strict';
+
+const KEY = 'drinktracker.v1';
+const SYNC_KEY = 'drinktracker.sync';
+const SYNC_FILE = 'drinks.json';
+const LOCALE = 'en-BE';
+const DEFAULT_PRESETS = [
+  [4, 20], [4, 40],
+  [12, 12], [15, 12], [20, 12],
+  [25, 4], [25, 5], [25, 6], [25, 8], [25, 10],
+  [33, 4], [33, 5], [33, 6], [33, 8], [33, 10],
+];
+const VOLUME_CHIPS = [4, 12, 15, 20, 25, 33, 50, 75];
+const ABV_CHIPS = [4, 5, 6, 8, 10, 12, 20, 40];
+
+// 1 Belgian standard drink = 10 g of pure alcohol; ethanol weighs ~0.8 g/ml.
+// grams = cl × 10 ml × abv/100 × 0.8 = cl × abv × 0.08
+const gramsOf = (cl, abv) => cl * abv * 0.08;
+const stdOf = (cl, abv) => gramsOf(cl, abv) / 10;
+
+const f1 = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const fN = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 1 });
+const f0 = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 0 });
+const parseNum = s => parseFloat(String(s).trim().replace(',', '.'));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const cleanId = x => String(x ?? '').replace(/[^\w-]/g, '').slice(0, 40);
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+
+// ---------- dates (all day keys are local YYYY-MM-DD strings) ----------
+const pad = n => String(n).padStart(2, '0');
+const keyOfDate = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const dateOfKey = k => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); };
+const addDays = (k, n) => { const d = dateOfKey(k); d.setDate(d.getDate() + n); return keyOfDate(d); };
+const mondayOf = k => { const d = dateOfKey(k); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return keyOfDate(d); };
+const dayKey = ts => { const d = new Date(ts); d.setHours(d.getHours() - state.settings.dayStartHour); return keyOfDate(d); };
+const todayKey = () => dayKey(Date.now());
+const fmtDate = (k, opts) => dateOfKey(k).toLocaleDateString(LOCALE, opts);
+const fmtRange = (a, b, opts) => new Intl.DateTimeFormat(LOCALE, opts).formatRange(dateOfKey(a), dateOfKey(b));
+const fmtWhen = ts => new Date(ts).toLocaleString(LOCALE, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+// ---------- state ----------
+// entries: every drink. deleted: ids of removed drinks, so a removal also syncs to other devices.
+// settings.prefsAt: when presets/limit/day-start last changed (newest wins when syncing).
+function defaults() {
+  return {
+    presets: DEFAULT_PRESETS.map(([cl, abv]) => ({ id: `d${cl}-${abv}`, cl, abv })),
+    entries: [],
+    deleted: [],
+    settings: { weeklyLimit: 10, dayStartHour: 5, startDay: null, prefsAt: 0, lastExport: null },
+  };
+}
+
+function load() {
+  const d = defaults();
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY));
+    if (s && Array.isArray(s.entries)) {
+      return {
+        presets: Array.isArray(s.presets) ? s.presets : d.presets,
+        entries: s.entries,
+        deleted: Array.isArray(s.deleted) ? s.deleted : [],
+        settings: { ...d.settings, ...s.settings },
+      };
+    }
+  } catch (e) { /* fall through to defaults */ }
+  return d;
+}
+
+function persist() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); }
+  catch (e) { toast('Could not save — storage unavailable'); }
+}
+
+function save() {
+  persist();
+  scheduleSync();
+}
+
+let state = load();
+if (!state.settings.startDay) { state.settings.startDay = todayKey(); persist(); }
+
+const view = { tab: 'log', day: todayKey(), mode: 'week', page: 0, sel: null };
+
+function dayTotals() {
+  const map = new Map();
+  for (const e of state.entries) {
+    const k = dayKey(e.ts);
+    map.set(k, (map.get(k) || 0) + stdOf(e.cl, e.abv));
+  }
+  return map;
+}
+
+// First day we know about: app install day, or an earlier back-filled drink.
+function trackingStart() {
+  let s = state.settings.startDay;
+  for (const e of state.entries) { const k = dayKey(e.ts); if (k < s) s = k; }
+  return s;
+}
+
+const sortPresets = () => state.presets.sort((a, b) => a.cl - b.cl || a.abv - b.abv);
+const touchPrefs = () => { state.settings.prefsAt = Date.now(); };
+
+// ---------- actions ----------
+function addDrink(cl, abv) {
+  let ts = Date.now();
+  if (view.day !== todayKey()) {
+    const d = dateOfKey(view.day);
+    d.setHours(20, 0, 0, 0);
+    ts = d.getTime();
+  }
+  const e = { id: uid(), ts, cl, abv };
+  state.entries.push(e);
+  save();
+  render();
+  navigator.vibrate?.(15);
+  toast(`Added ${fN.format(cl)} cl · ${fN.format(abv)}% (${f1.format(stdOf(cl, abv))})`, () => removeEntry(e.id, true));
+}
+
+function removeEntry(id, silent) {
+  const i = state.entries.findIndex(e => e.id === id);
+  if (i < 0) return;
+  const [e] = state.entries.splice(i, 1);
+  state.deleted.push(e.id);
+  save();
+  render();
+  // Undo re-adds under a fresh id: the old id may already be synced as deleted.
+  if (!silent) toast('Drink removed', () => { state.entries.push({ ...e, id: uid() }); save(); render(); });
+}
+
+function addPreset(cl, abv) {
+  if (state.presets.some(p => p.cl === cl && p.abv === abv)) return false;
+  state.presets.push({ id: uid(), cl, abv });
+  sortPresets();
+  touchPrefs();
+  save();
+  return true;
+}
+
+function removePreset(id) {
+  const i = state.presets.findIndex(p => p.id === id);
+  if (i < 0) return;
+  const [p] = state.presets.splice(i, 1);
+  touchPrefs();
+  save();
+  render();
+  toast(`Removed ${fN.format(p.cl)} cl · ${fN.format(p.abv)}%`, () => { state.presets.push(p); sortPresets(); touchPrefs(); save(); render(); });
+}
+
+const validDrink = (cl, abv) => cl > 0 && cl <= 300 && abv > 0 && abv <= 100;
+
+// ---------- data files (export, import, online backup) ----------
+// One drink per line, so the backup repo's history reads like a log.
+function serialize(s) {
+  const head = {
+    app: 'drink-tracker',
+    version: 2,
+    settings: {
+      weeklyLimit: s.settings.weeklyLimit,
+      dayStartHour: s.settings.dayStartHour,
+      startDay: s.settings.startDay,
+      prefsAt: s.settings.prefsAt,
+    },
+    presets: s.presets.map(p => ({ id: p.id, cl: p.cl, abv: p.abv })),
+    deleted: [...s.deleted].sort(),
+  };
+  const lines = s.entries
+    .slice()
+    .sort((a, b) => a.ts - b.ts || (a.id < b.id ? -1 : 1))
+    .map(e => JSON.stringify({ id: e.id, ts: e.ts, cl: e.cl, abv: e.abv }));
+  return `${JSON.stringify(head).slice(0, -1)},"entries":[\n${lines.join(',\n')}\n]}\n`;
+}
+
+function sanitizeData(d) {
+  if (!d || !Array.isArray(d.entries)) throw new Error('no drinks found in file');
+  const s = d.settings || {};
+  return {
+    entries: d.entries
+      .map(e => ({ id: cleanId(e.id) || cleanId(`x${e.ts}-${e.cl}-${e.abv}`), ts: Number(e.ts), cl: Number(e.cl), abv: Number(e.abv) }))
+      .filter(e => Number.isFinite(e.ts) && validDrink(e.cl, e.abv)),
+    presets: Array.isArray(d.presets)
+      ? d.presets
+        .map(p => ({ id: cleanId(p.id) || cleanId(`x${p.cl}-${p.abv}`), cl: Number(p.cl), abv: Number(p.abv) }))
+        .filter(p => validDrink(p.cl, p.abv))
+      : null,
+    deleted: Array.isArray(d.deleted) ? d.deleted.map(cleanId).filter(Boolean) : [],
+    settings: {
+      weeklyLimit: s.weeklyLimit > 0 && s.weeklyLimit < 1000 ? Number(s.weeklyLimit) : undefined,
+      dayStartHour: Number.isInteger(s.dayStartHour) && s.dayStartHour >= 0 && s.dayStartHour <= 8 ? s.dayStartHour : undefined,
+      startDay: /^\d{4}-\d{2}-\d{2}$/.test(s.startDay) ? s.startDay : null,
+      prefsAt: Number(s.prefsAt) || 0,
+    },
+  };
+}
+
+// Drinks: union of both sides minus anything deleted on either side.
+// Presets and settings: whichever side changed them last.
+function mergeData(local, other) {
+  const deleted = new Set([...local.deleted, ...other.deleted]);
+  const byId = new Map();
+  for (const e of [...other.entries, ...local.entries]) if (!deleted.has(e.id)) byId.set(e.id, e);
+  const prefs = other.presets && other.settings.prefsAt >= local.settings.prefsAt ? other : local;
+  const startDays = [local.settings.startDay, other.settings.startDay].filter(Boolean).sort();
+  return {
+    presets: prefs.presets,
+    entries: [...byId.values()],
+    deleted: [...deleted],
+    settings: {
+      ...local.settings,
+      weeklyLimit: prefs.settings.weeklyLimit ?? local.settings.weeklyLimit,
+      dayStartHour: prefs.settings.dayStartHour ?? local.settings.dayStartHour,
+      prefsAt: prefs.settings.prefsAt,
+      startDay: startDays[0] || local.settings.startDay,
+    },
+  };
+}
+
+// ---------- online backup: drinks.json in a private GitHub repo ----------
+let sync = (() => { try { return JSON.parse(localStorage.getItem(SYNC_KEY)) || {}; } catch (e) { return {}; } })();
+let syncTimer = null, syncing = false, syncQueued = false, syncWarned = false;
+
+function saveSync() {
+  try { localStorage.setItem(SYNC_KEY, JSON.stringify(sync)); } catch (e) { /* ignore */ }
+}
+
+function scheduleSync(delay = 3000) {
+  if (!sync.token) return;
+  if (syncing) { syncQueued = true; return; }
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(runSync, delay);
+}
+
+const b64encode = s => { let bin = ''; for (const b of new TextEncoder().encode(s)) bin += String.fromCharCode(b); return btoa(bin); };
+const b64decode = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g, '')), c => c.charCodeAt(0)));
+
+async function ghFetch(path, opts = {}) {
+  try {
+    return await fetch(`https://api.github.com/repos/${sync.repo}${path}`, {
+      ...opts,
+      cache: 'no-store',
+      headers: { Authorization: `Bearer ${sync.token}`, Accept: 'application/vnd.github+json', ...opts.headers },
+    });
+  } catch (e) {
+    throw Object.assign(new Error('Offline, will retry'), { offline: true });
+  }
+}
+
+function ghError(res) {
+  return new Error(
+    res.status === 401 ? 'Token rejected (expired or mistyped?)'
+    : res.status === 403 ? 'Token is missing the Contents read & write permission'
+    : res.status === 404 ? 'Repository not found, or the token has no access to it'
+    : `GitHub error ${res.status}`);
+}
+
+async function runSync() {
+  clearTimeout(syncTimer);
+  if (!sync.token) return;
+  if (syncing) { syncQueued = true; return; }
+  syncing = true;
+  renderSyncStatus();
+  try {
+    for (let attempt = 1; ; attempt++) {
+      const res = await ghFetch(`/contents/${SYNC_FILE}`);
+      let remoteText = null, sha;
+      if (res.ok) {
+        const j = await res.json();
+        sha = j.sha;
+        remoteText = j.encoding === 'base64'
+          ? b64decode(j.content)
+          : await (await ghFetch(`/contents/${SYNC_FILE}`, { headers: { Accept: 'application/vnd.github.raw' } })).text();
+      } else if (res.status !== 404) {
+        throw ghError(res);
+      }
+      if (remoteText != null) {
+        state = mergeData(state, sanitizeData(JSON.parse(remoteText)));
+        sortPresets();
+        persist();
+        render();
+      }
+      const text = serialize(state);
+      if (text === remoteText) break;
+      const put = await ghFetch(`/contents/${SYNC_FILE}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: `Update drinks (${state.entries.length})`, content: b64encode(text), ...(sha && { sha }) }),
+      });
+      if (put.ok) break;
+      // 409/422: the file changed since we read it (another device) - read, merge and try again.
+      if ((put.status === 409 || put.status === 422) && attempt < 3) continue;
+      throw ghError(put);
+    }
+    sync.lastSync = Date.now();
+    sync.error = null;
+  } catch (err) {
+    sync.error = err.message;
+    if (!err.offline && !syncWarned) { syncWarned = true; toast(`Online backup: ${err.message}`); }
+  } finally {
+    syncing = false;
+    saveSync();
+    renderSyncStatus();
+    if (syncQueued) { syncQueued = false; scheduleSync(500); }
+  }
+}
+
+// ---------- toast ----------
+let toastTimer;
+function toast(msg, undo) {
+  const t = $('#toast');
+  t.querySelector('.msg').textContent = msg;
+  const b = t.querySelector('button');
+  b.hidden = !undo;
+  b.onclick = () => { hideToast(); undo(); };
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(hideToast, undo ? 4500 : 3500);
+}
+function hideToast() { $('#toast').classList.remove('show'); }
+
+// ---------- render: log ----------
+const X_ICON = '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+const PLUS_ICON = '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>';
+
+function renderLog() {
+  const totals = dayTotals();
+  const today = todayKey();
+  const yesterday = addDays(today, -1);
+  const thisYear = dateOfKey(today).getFullYear() === dateOfKey(view.day).getFullYear();
+  const rel = view.day === today ? 'Today' : view.day === yesterday ? 'Yesterday' : null;
+
+  $('#dayRel').textContent = rel || fmtDate(view.day, { weekday: 'long' });
+  $('#dayFull').textContent = fmtDate(view.day, {
+    weekday: rel ? 'long' : undefined, day: 'numeric', month: 'long', year: thisYear ? undefined : 'numeric',
+  });
+  $('#nextDay').disabled = view.day >= today;
+
+  const dayStd = totals.get(view.day) || 0;
+  $('#dayStd').textContent = f1.format(dayStd);
+  $('#dayGrams').textContent = `std drinks · ${f0.format(dayStd * 10)} g alcohol`;
+
+  const wk = mondayOf(view.day);
+  const start = trackingStart();
+  let wTotal = 0, free = 0;
+  for (let i = 0; i < 7; i++) {
+    const k = addDays(wk, i);
+    const v = totals.get(k) || 0;
+    wTotal += v;
+    if (!v && k <= today && k >= start) free++;
+  }
+  const limit = state.settings.weeklyLimit;
+  const over = wTotal > limit;
+  $('#weekLabel').textContent = wk === mondayOf(today) ? 'This week' : `Week of ${fmtDate(wk, { day: 'numeric', month: 'short' })}`;
+  $('#weekStd').textContent = f1.format(wTotal);
+  $('#weekLimit').textContent = ` / ${fN.format(limit)}`;
+  $('#weekMeter').classList.toggle('over', over);
+  $('#weekMeter i').style.width = `${Math.min(100, wTotal / limit * 100)}%`;
+  $('#weekFree').textContent = `${free} alcohol-free day${free === 1 ? '' : 's'}`;
+  $('#weekWarn').hidden = !over;
+
+  const groups = new Map();
+  for (const p of state.presets) {
+    if (!groups.has(p.cl)) groups.set(p.cl, []);
+    groups.get(p.cl).push(p);
+  }
+  $('#presets').innerHTML = [...groups].map(([cl, ps]) => `
+    <div class="pgroup">
+      <div class="pvol">${fN.format(cl)} cl</div>
+      <div class="pbtns">${ps.map(p => `
+        <button class="preset" data-cl="${+p.cl}" data-abv="${+p.abv}" aria-label="Add ${fN.format(p.cl)} cl at ${fN.format(p.abv)}%">
+          <b>${fN.format(p.abv)}%</b><small>${f1.format(stdOf(p.cl, p.abv))}</small>
+        </button>`).join('')}
+      </div>
+    </div>`).join('') || '<p class="hint">No saved drinks — use “Other drink” and tick “Save to my drinks”.</p>';
+
+  const list = state.entries.filter(e => dayKey(e.ts) === view.day).sort((a, b) => a.ts - b.ts);
+  $('#loggedTitle').textContent = list.length ? `Logged · ${list.length} drink${list.length === 1 ? '' : 's'}` : 'Logged';
+  $('#entries').innerHTML = list.map(e => `
+    <li>
+      <time>${new Date(e.ts).toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' })}</time>
+      <span class="what">${fN.format(e.cl)} cl · ${fN.format(e.abv)}%</span>
+      <span class="std">${f1.format(stdOf(e.cl, e.abv))}</span>
+      <button class="again" data-again="${cleanId(e.id)}" aria-label="Add another ${fN.format(e.cl)} cl at ${fN.format(e.abv)}%">${PLUS_ICON}</button>
+      <button class="del" data-id="${cleanId(e.id)}" aria-label="Remove">${X_ICON}</button>
+    </li>`).join('') || '<li class="empty">Nothing logged for this day.</li>';
+}
+
+// ---------- render: trends ----------
+const COUNT = { day: 30, week: 16, month: 12 };
+
+function buildBuckets() {
+  const totals = dayTotals();
+  const today = todayKey();
+  const n = COUNT[view.mode];
+  const out = [];
+  if (view.mode === 'day') {
+    const end = addDays(today, -n * view.page);
+    for (let i = n - 1; i >= 0; i--) { const k = addDays(end, -i); out.push({ start: k, end: k }); }
+  } else if (view.mode === 'week') {
+    const end = addDays(mondayOf(today), -7 * n * view.page);
+    for (let i = n - 1; i >= 0; i--) { const s = addDays(end, -7 * i); out.push({ start: s, end: addDays(s, 6) }); }
+  } else {
+    const t = dateOfKey(today);
+    for (let i = n - 1; i >= 0; i--) {
+      const s = new Date(t.getFullYear(), t.getMonth() - i - n * view.page, 1);
+      out.push({ start: keyOfDate(s), end: keyOfDate(new Date(s.getFullYear(), s.getMonth() + 1, 0)) });
+    }
+  }
+  for (const b of out) b.value = 0;
+  for (const [k, v] of totals) {
+    const b = out.find(b => k >= b.start && k <= b.end);
+    if (b) b.value += v;
+  }
+  return { buckets: out, totals, today };
+}
+
+function niceStep(raw) {
+  const p = 10 ** Math.floor(Math.log10(raw));
+  const m = raw / p;
+  return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * p;
+}
+
+function barPath(x, y, w, h) {
+  const r = Math.min(4, w / 2, h);
+  return `M${x},${y + h}V${y + r}A${r},${r} 0 0 1 ${x + r},${y}H${x + w - r}A${r},${r} 0 0 1 ${x + w},${y + r}V${y + h}Z`;
+}
+
+function periodLabel(b, long) {
+  if (view.mode === 'day') return fmtDate(b.start, { weekday: long ? 'long' : 'short', day: 'numeric', month: 'short', year: 'numeric' });
+  if (view.mode === 'week') return fmtRange(b.start, b.end, { day: 'numeric', month: 'short', year: 'numeric' });
+  return fmtDate(b.start, { month: long ? 'long' : 'short', year: 'numeric' });
+}
+
+function tickLabel(b, i, n, slot) {
+  const d = dateOfKey(b.start);
+  if (view.mode === 'day') return d.getDay() === 1 ? `${d.getDate()}/${d.getMonth() + 1}` : '';
+  if (view.mode === 'week') return (n - 1 - i) % 4 === 0 ? `${d.getDate()}/${d.getMonth() + 1}` : '';
+  if (slot < 26 && (n - 1 - i) % 2) return '';
+  return d.getMonth() === 0 ? `'${String(d.getFullYear()).slice(2)}` : d.toLocaleDateString(LOCALE, { month: 'short' });
+}
+
+function renderTrends() {
+  $$('.seg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === view.mode));
+  $('#newer').disabled = view.page === 0;
+
+  const { buckets, totals, today } = buildBuckets();
+  const n = buckets.length;
+  const limit = view.mode === 'week' ? state.settings.weeklyLimit : null;
+  if (view.sel == null || view.sel >= n) view.sel = n - 1;
+  const selB = buckets[view.sel];
+
+  // readout (the tap/hover tooltip, pinned above the plot so a finger never hides it)
+  const over = limit && selB.value > limit;
+  $('#readout').innerHTML = `<div class="p">${periodLabel(selB, true)}</div>
+    <div class="v">${f1.format(selB.value)} <small>std drinks</small>${over ? '<span class="warn">▲ above guideline</span>' : ''}</div>`;
+
+  // chart
+  const el = $('#chart');
+  const W = Math.max(240, el.clientWidth || 340), H = el.clientHeight || 220;
+  const m = { t: 10, r: 6, b: 24, l: 30 };
+  const pw = W - m.l - m.r, ph = H - m.t - m.b;
+  const maxV = Math.max(1, ...buckets.map(b => b.value), limit ? limit * 1.1 : 0);
+  const step = niceStep(maxV / 4);
+  const top = Math.ceil(maxV / step - 1e-9) * step;
+  const y = v => m.t + ph - v / top * ph;
+  const crisp = v => Math.round(v) + 0.5;
+  const slot = pw / n;
+  const bw = Math.min(24, Math.max(2, slot * 0.7));
+
+  let svg = `<rect class="sel" x="${m.l + slot * view.sel}" y="${m.t}" width="${slot}" height="${ph}" rx="4"/>`;
+  for (let v = 0; v <= top + 1e-9; v += step) {
+    svg += `<line class="${v ? 'grid' : 'base'}" x1="${m.l}" x2="${W - m.r}" y1="${crisp(y(v))}" y2="${crisp(y(v))}"/>`;
+    svg += `<text x="${m.l - 6}" y="${y(v)}" dy="0.32em" text-anchor="end">${fN.format(v)}</text>`;
+  }
+  buckets.forEach((b, i) => {
+    const cx = m.l + slot * (i + 0.5);
+    if (b.value > 0) {
+      const h = Math.max(2, y(0) - y(b.value));
+      svg += `<path class="bar" d="${barPath(cx - bw / 2, y(0) - h, bw, h)}"/>`;
+    }
+    const t = tickLabel(b, i, n, slot);
+    if (t) svg += `<text x="${cx}" y="${H - 6}" text-anchor="middle">${t}</text>`;
+  });
+  if (limit) {
+    svg += `<line class="limit" x1="${m.l}" x2="${W - m.r}" y1="${crisp(y(limit))}" y2="${crisp(y(limit))}"/>`;
+    svg += `<text class="limitlabel" x="${m.l + 4}" y="${y(limit) - 5}">guideline ${fN.format(limit)}</text>`;
+  }
+  buckets.forEach((b, i) => {
+    svg += `<rect class="hit" data-i="${i}" x="${m.l + slot * i}" y="0" width="${slot}" height="${H}"/>`;
+  });
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Standard drinks per ${view.mode}">${svg}</svg>`;
+
+  const lastEnd = buckets[n - 1].end < today ? buckets[n - 1].end : today;
+  $('#range').textContent = view.mode === 'month'
+    ? fmtRange(buckets[0].start, lastEnd, { month: 'short', year: 'numeric' })
+    : fmtRange(buckets[0].start, lastEnd, { day: 'numeric', month: 'short', year: 'numeric' });
+
+  // stats over the tracked days in range
+  const lo = buckets[0].start > trackingStart() ? buckets[0].start : trackingStart();
+  let days = 0, free = 0, total = 0, peak = 0, peakKey = null;
+  for (let k = lo; k <= lastEnd; k = addDays(k, 1)) {
+    const v = totals.get(k) || 0;
+    days++; total += v;
+    if (!v) free++;
+    if (v > peak) { peak = v; peakKey = k; }
+  }
+  const tile = (label, value, sub) => `<div class="card tile"><div class="label">${label}</div><div class="value">${value}</div><div class="sub">${sub}</div></div>`;
+  $('#stats').innerHTML = days ? [
+    tile('Total', f1.format(total), 'std drinks'),
+    tile('Per week', f1.format(total / days * 7), `average · guideline ${fN.format(state.settings.weeklyLimit)}`),
+    tile('Alcohol-free', `${free}<small> / ${days}</small>`, 'days'),
+    tile('Heaviest day', f1.format(peak), peakKey ? fmtDate(peakKey, { weekday: 'short', day: 'numeric', month: 'short' }) : '—'),
+  ].join('') : '<p class="hint">No tracked days in this range.</p>';
+
+  $('#table').innerHTML = `<tr><th>${{ day: 'Day', week: 'Week', month: 'Month' }[view.mode]}</th><th class="num">Std drinks</th></tr>` +
+    buckets.slice().reverse().map(b => `<tr><td>${periodLabel(b)}</td><td class="num">${f1.format(b.value)}${limit && b.value > limit ? ' ▲' : ''}</td></tr>`).join('');
+}
+
+// ---------- render: settings ----------
+function renderSettings() {
+  $('#presetRows').innerHTML = state.presets.map(p => `
+    <div>
+      <span class="grow">${fN.format(p.cl)} cl · ${fN.format(p.abv)}%</span>
+      <span class="std">${f1.format(stdOf(p.cl, p.abv))} std</span>
+      <button class="del" data-preset="${cleanId(p.id)}" aria-label="Remove ${fN.format(p.cl)} cl ${fN.format(p.abv)}%">${X_ICON}</button>
+    </div>`).join('') || '<div class="empty">No saved drinks.</div>';
+  if (document.activeElement !== $('#limit')) $('#limit').value = fN.format(state.settings.weeklyLimit);
+  $('#dayStart').value = String(state.settings.dayStartHour);
+  const le = state.settings.lastExport;
+  $('#backupInfo').textContent = `${state.entries.length} drinks stored on this phone. ` +
+    (le ? `Last export: ${new Date(le).toLocaleDateString(LOCALE, { day: 'numeric', month: 'short', year: 'numeric' })}.` : 'Never exported.');
+  renderSyncStatus();
+}
+
+function renderSyncStatus() {
+  if (view.tab !== 'settings') return;
+  const on = !!sync.token;
+  $('#syncForm').hidden = on;
+  $('#syncActions').hidden = !on;
+  const title = $('#syncTitle'), detail = $('#syncDetail');
+  title.className = '';
+  if (!on) {
+    title.textContent = 'Not connected';
+    detail.textContent = 'Saves your drinks to a private GitHub repository and keeps devices in sync.';
+  } else if (syncing) {
+    title.textContent = 'Syncing…';
+    detail.textContent = sync.repo;
+  } else if (sync.error) {
+    title.textContent = `⚠ ${sync.error}`;
+    title.className = 'bad';
+    detail.textContent = sync.repo + (sync.lastSync ? ` · last backup ${fmtWhen(sync.lastSync)}` : '');
+  } else {
+    title.textContent = '✓ Backed up online';
+    title.className = 'ok';
+    detail.textContent = sync.repo + (sync.lastSync ? ` · ${fmtWhen(sync.lastSync)}` : '');
+  }
+}
+
+function render() {
+  if (view.tab === 'log') renderLog();
+  else if (view.tab === 'trends') renderTrends();
+  else renderSettings();
+}
+
+function showTab(tab) {
+  view.tab = tab;
+  for (const b of $$('.tabs button')) b.setAttribute('aria-selected', b.dataset.tab === tab);
+  for (const t of ['log', 'trends', 'settings']) $('#tab-' + t).hidden = t !== tab;
+  render();
+  scrollTo(0, 0);
+}
+
+// ---------- wiring: log ----------
+$('.tabs').addEventListener('click', ev => {
+  const b = ev.target.closest('button[data-tab]');
+  if (b) showTab(b.dataset.tab);
+});
+
+$('#prevDay').onclick = () => { view.day = addDays(view.day, -1); renderLog(); };
+$('#nextDay').onclick = () => { if (view.day < todayKey()) { view.day = addDays(view.day, 1); renderLog(); } };
+$('#dayLabel').onclick = () => {
+  const p = $('#pickDate');
+  p.max = todayKey();
+  p.value = view.day;
+  try { p.showPicker(); } catch (e) { p.focus(); p.click(); }
+};
+$('#pickDate').onchange = ev => {
+  const v = ev.target.value;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) { view.day = v <= todayKey() ? v : todayKey(); renderLog(); }
+};
+
+$('#presets').addEventListener('click', ev => {
+  const b = ev.target.closest('.preset');
+  if (b) addDrink(+b.dataset.cl, +b.dataset.abv);
+});
+$('#entries').addEventListener('click', ev => {
+  const again = ev.target.closest('[data-again]');
+  if (again) {
+    const e = state.entries.find(e => e.id === again.dataset.again);
+    if (e) addDrink(e.cl, e.abv);
+    return;
+  }
+  const del = ev.target.closest('.del');
+  if (del) removeEntry(del.dataset.id);
+});
+
+// ---------- wiring: other-drink dialog ----------
+const dlg = $('#otherDlg');
+$('.chips[data-for="oCl"]').innerHTML = VOLUME_CHIPS.map(v => `<button type="button" class="chip" data-v="${v}">${v} cl</button>`).join('');
+$('.chips[data-for="oAbv"]').innerHTML = ABV_CHIPS.map(v => `<button type="button" class="chip" data-v="${v}">${v}%</button>`).join('');
+
+function updateOther() {
+  const cl = parseNum($('#oCl').value), abv = parseNum($('#oAbv').value);
+  for (const c of $$('.chips[data-for] .chip')) {
+    const input = c.parentElement.dataset.for === 'oCl' ? cl : abv;
+    c.setAttribute('aria-pressed', +c.dataset.v === input);
+  }
+  const ok = validDrink(cl, abv);
+  $('#oAdd').disabled = !ok;
+  $('#oPreview').innerHTML = ok ? `= <b>${f1.format(stdOf(cl, abv))} std drinks</b> · ${f0.format(gramsOf(cl, abv))} g alcohol` : '';
+}
+for (const chips of $$('.chips[data-for]')) {
+  chips.addEventListener('click', ev => {
+    const c = ev.target.closest('.chip');
+    if (!c) return;
+    $('#' + chips.dataset.for).value = fN.format(+c.dataset.v);
+    updateOther();
+  });
+}
+$('#oCl').oninput = updateOther;
+$('#oAbv').oninput = updateOther;
+$('#otherBtn').onclick = () => {
+  $('#oCl').value = '';
+  $('#oAbv').value = '';
+  $('#oSave').checked = false;
+  updateOther();
+  dlg.showModal();
+  document.activeElement?.blur();
+};
+$('#oCancel').onclick = () => dlg.close();
+dlg.addEventListener('click', ev => { if (ev.target === dlg) dlg.close(); });
+$('#oAdd').onclick = () => {
+  const cl = parseNum($('#oCl').value), abv = parseNum($('#oAbv').value);
+  if (!validDrink(cl, abv)) return;
+  if ($('#oSave').checked) addPreset(cl, abv);
+  dlg.close();
+  addDrink(cl, abv);
+};
+
+// ---------- wiring: trends ----------
+$('.seg').addEventListener('click', ev => {
+  const b = ev.target.closest('button[data-mode]');
+  if (!b || b.dataset.mode === view.mode) return;
+  view.mode = b.dataset.mode;
+  view.page = 0;
+  view.sel = null;
+  renderTrends();
+});
+$('#older').onclick = () => { view.page++; view.sel = null; renderTrends(); };
+$('#newer').onclick = () => { if (view.page > 0) { view.page--; view.sel = null; renderTrends(); } };
+function pickBar(ev) {
+  const i = ev.target.dataset?.i;
+  if (i != null && +i !== view.sel) { view.sel = +i; renderTrends(); }
+}
+$('#chart').addEventListener('pointerdown', pickBar);
+$('#chart').addEventListener('pointermove', ev => { if (ev.pointerType === 'mouse') pickBar(ev); });
+new ResizeObserver(() => { if (view.tab === 'trends') renderTrends(); }).observe($('#chart'));
+
+// ---------- wiring: settings ----------
+$('#dayStart').innerHTML = Array.from({ length: 9 }, (_, h) => `<option value="${h}">${pad(h)}:00</option>`).join('');
+$('#dayStart').onchange = ev => {
+  state.settings.dayStartHour = +ev.target.value;
+  touchPrefs();
+  view.day = todayKey();
+  save();
+  renderSettings();
+};
+$('#limit').onchange = ev => {
+  const v = parseNum(ev.target.value);
+  if (v > 0 && v < 1000) { state.settings.weeklyLimit = v; touchPrefs(); save(); }
+  ev.target.value = fN.format(state.settings.weeklyLimit);
+};
+$('#addPreset').onsubmit = ev => {
+  ev.preventDefault();
+  const cl = parseNum($('#newCl').value), abv = parseNum($('#newAbv').value);
+  if (!validDrink(cl, abv)) { toast('Enter a volume in cl and a percentage'); return; }
+  if (!addPreset(cl, abv)) { toast('That drink is already saved'); return; }
+  $('#newCl').value = '';
+  $('#newAbv').value = '';
+  document.activeElement?.blur();
+  renderSettings();
+};
+$('#presetRows').addEventListener('click', ev => {
+  const b = ev.target.closest('[data-preset]');
+  if (b) removePreset(b.dataset.preset);
+});
+
+$('#syncForm').onsubmit = async ev => {
+  ev.preventDefault();
+  const repo = $('#syncRepo').value.trim().replace(/^https?:\/\/github\.com\//, '').replace(/(\.git|\/)$/, '');
+  const token = $('#syncToken').value.trim();
+  if (!/^[\w.-]+\/[\w.-]+$/.test(repo) || !token) { toast('Enter the repository as owner/name, and a token'); return; }
+  const btn = $('#syncConnect');
+  btn.disabled = true;
+  const prev = sync;
+  sync = { repo, token };
+  try {
+    const res = await ghFetch('');
+    if (!res.ok) throw ghError(res);
+    if (!(await res.json()).private) throw new Error('That repository is public. Use a private one.');
+  } catch (err) {
+    sync = prev;
+    toast(err.message);
+    return;
+  } finally {
+    btn.disabled = false;
+  }
+  $('#syncToken').value = '';
+  syncWarned = false;
+  saveSync();
+  runSync();
+};
+$('#syncNow').onclick = () => { syncWarned = false; runSync(); };
+$('#syncOff').onclick = () => {
+  sync = { repo: sync.repo };
+  saveSync();
+  $('#syncRepo').value = sync.repo || '';
+  renderSettings();
+  toast('Disconnected. Your drinks stay on this phone.');
+};
+
+$('#exportBtn').onclick = () => {
+  const url = URL.createObjectURL(new Blob([serialize(state)], { type: 'application/json' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `drinks-${keyOfDate(new Date())}.json`;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  state.settings.lastExport = Date.now();
+  persist();
+  renderSettings();
+};
+$('#importBtn').onclick = () => $('#importFile').click();
+$('#importFile').onchange = async ev => {
+  const file = ev.target.files[0];
+  ev.target.value = '';
+  if (!file) return;
+  try {
+    const before = state.entries.length;
+    state = mergeData(state, sanitizeData(JSON.parse(await file.text())));
+    sortPresets();
+    save();
+    render();
+    const added = state.entries.length - before;
+    toast(`Imported ${added} new drink${added === 1 ? '' : 's'}`);
+  } catch (err) {
+    toast(`Import failed: ${err.message}`);
+  }
+};
+
+// ---------- lifecycle ----------
+// When the app comes back after the day rolled over, jump from "old today" to the new today.
+let lastToday = todayKey();
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    if (syncTimer) runSync(); // push pending changes before the app is suspended
+    return;
+  }
+  const t = todayKey();
+  if (t !== lastToday) {
+    if (view.day === lastToday) view.day = t;
+    lastToday = t;
+  }
+  render();
+  runSync(); // pick up drinks logged on another device
+});
+addEventListener('online', () => runSync());
+
+navigator.storage?.persist?.().catch(() => {});
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+if (sync.repo) $('#syncRepo').value = sync.repo;
+showTab('log');
+runSync();
+</script>
+</body>
+</html>
